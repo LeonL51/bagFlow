@@ -10,6 +10,7 @@ class SignUpScreen extends StatefulWidget {
 }
 
 class _SignUpScreenState extends State<SignUpScreen> {
+  
   bool _passHidden = true;
   bool _useEmail = true;
   bool _isLoading = false;
@@ -88,11 +89,11 @@ class _SignUpScreenState extends State<SignUpScreen> {
                   children: [
                     Center(
                       child: const Text(
-                        "Create an account",
+                        "Create an Account",
                         style: TextStyle(
                           color: Colors.white,
                           fontWeight: FontWeight.bold,
-                          fontSize: 36,
+                          fontSize: 34,
                         ),
                       ),
                     ),
@@ -179,7 +180,6 @@ class _SignUpScreenState extends State<SignUpScreen> {
     );
   }
 
-  // Add validator
   Widget _fullName() {
     return TextFormField(
       controller: _nameController,
@@ -228,20 +228,6 @@ class _SignUpScreenState extends State<SignUpScreen> {
     );
   }
 
-  Widget _signUp() {
-    return SizedBox(
-      width: double.infinity,
-      height: 50,
-      child: ElevatedButton(
-        style: ElevatedButton.styleFrom(
-          backgroundColor: const Color(0xFF0A1F44),
-        ),
-        onPressed: _submitLogin,
-        child: const Text("Sign Up", style: TextStyle(color: Colors.white)),
-      ),
-    );
-  }
-
   Widget _password() {
     return TextFormField(
       controller: _passwordController,
@@ -250,7 +236,6 @@ class _SignUpScreenState extends State<SignUpScreen> {
       decoration: _fieldDecoration(
         hintText: '***************',
         suffix: IconButton(
-          // Change state of button
           onPressed: () => setState(() => _passHidden = !_passHidden),
           icon: Icon(
             _passHidden ? Icons.visibility_off : Icons.visibility,
@@ -282,6 +267,20 @@ class _SignUpScreenState extends State<SignUpScreen> {
 
         return null;
       },
+    );
+  }
+
+    Widget _signUp() {
+    return SizedBox(
+      width: double.infinity,
+      height: 50,
+      child: ElevatedButton(
+        style: ElevatedButton.styleFrom(
+          backgroundColor: const Color(0xFF0A1F44),
+        ),
+        onPressed: _submitLogin,
+        child: const Text("Sign Up", style: TextStyle(color: Colors.white)),
+      ),
     );
   }
 
@@ -353,7 +352,6 @@ class _SignUpScreenState extends State<SignUpScreen> {
     );
   }
 
-  // Review what this does
   void _submitLogin() async {
     if (!_formKey.currentState!.validate()) return;
 

@@ -1,21 +1,23 @@
-import 'package:bag_flow/login_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:intl_phone_field/intl_phone_field.dart';
+import 'package:bag_flow/login_screen.dart';
+import 'package:bag_flow/Otp.dart';
 
 class PhoneNumber extends StatefulWidget {
   const PhoneNumber({super.key});
 
   @override
-  State<PhoneNumber> createState() => _LoginScreenState();
+  State<PhoneNumber> createState() => _PhoneNumberState();
 }
 
-class _LoginScreenState extends State<PhoneNumber> {
+class _PhoneNumberState extends State<PhoneNumber> {
+  final _formKey = GlobalKey<FormState>();
+  final _phoneController = TextEditingController();
+
   bool _isLoading = false;
   bool _keepSignedIn = true;
 
-  final _formKey = GlobalKey<FormState>();
-
-  final _phoneController = TextEditingController();
+  String _fullPhoneNumber = "";
 
   @override
   void dispose() {
@@ -23,12 +25,12 @@ class _LoginScreenState extends State<PhoneNumber> {
     super.dispose();
   }
 
-  InputDecoration _fieldDecoration({ String? hintText }) {
+  InputDecoration _fieldDecoration({String? hintText}) {
     return InputDecoration(
       filled: true,
       fillColor: const Color(0xFFF6F7F8),
-      hintText: hintText, 
-      hintStyle: const TextStyle(color: Color(0xFF9CA3AF)), 
+      hintText: hintText,
+      hintStyle: const TextStyle(color: Color(0xFF9CA3AF)),
       labelStyle: const TextStyle(color: Color(0xFF6B7280)),
       border: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),
@@ -106,7 +108,7 @@ class _LoginScreenState extends State<PhoneNumber> {
                 ),
               ),
             ),
-          )
+          ),
         ],
       ),
     );
@@ -139,13 +141,35 @@ class _LoginScreenState extends State<PhoneNumber> {
       controller: _phoneController,
       dropdownIconPosition: IconPosition.trailing,
       initialCountryCode: 'US',
+      disableLengthCheck: true,
       decoration: _fieldDecoration(
-        hintText: '(917) 555-3222'
-      ), 
+        hintText: _fullPhoneNumber.isEmpty ? '917-555-3333' : _fullPhoneNumber,
+      ),
+      validator: (phone) {
+        final text = phone?.number.trim() ?? "";
+
+        if (text.isEmpty) {
+          return "Please enter your phone number";
+        }
+
+        if (text.length < 10) {
+          return "Please enter only 10 numbers";
+        }
+
+        return null;
+      },
       onChanged: (phone) {
-        print(phone.completeNumber); 
-      }
-    ); 
+        setState(() {
+          _fullPhoneNumber = phone.completeNumber;
+        });
+      },
+      onCountryChanged: (country) {
+        setState(() {
+          _fullPhoneNumber = "";
+          _phoneController.clear();
+        });
+      },
+    );
   }
 
   Widget _keepSignedin() {
@@ -178,8 +202,13 @@ class _LoginScreenState extends State<PhoneNumber> {
         style: ElevatedButton.styleFrom(
           backgroundColor: const Color(0xFF0A1F44),
         ),
-        // Add a function to this 
-        onPressed: () {},
+        // Add a function to this
+        onPressed: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => Otp()),
+          );
+        },
         child: const Text("Get OTP", style: TextStyle(color: Colors.white)),
       ),
     );
@@ -188,13 +217,7 @@ class _LoginScreenState extends State<PhoneNumber> {
   Widget _divider() {
     return Row(
       children: [
-        Expanded(
-          child: 
-            Container(
-              height: 1,
-              color: Colors.white24,
-            )
-        ),
+        Expanded(child: Container(height: 1, color: Colors.white24)),
 
         const Padding(
           padding: EdgeInsets.symmetric(horizontal: 12),
@@ -204,15 +227,9 @@ class _LoginScreenState extends State<PhoneNumber> {
           ),
         ),
 
-        Expanded(
-          child: 
-            Container(
-              height: 1,
-              color: Colors.white24, 
-            )
-        )
+        Expanded(child: Container(height: 1, color: Colors.white24)),
       ],
-    ); 
+    );
   }
 
   Widget _backToEmailButton() {

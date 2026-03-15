@@ -12,12 +12,6 @@ class LoginScreen extends StatefulWidget {
 
 class _LoginScreenState extends State<LoginScreen> {
 
-  bool _useEmail = true;
-  bool _isLoading = false;
-  bool _passHidden = true;
-  bool _forgotPassword = true; 
-  bool _keepSignedIn = true;
-
   final _formKey = GlobalKey<FormState>();
 
   final _emailController = TextEditingController();
@@ -31,6 +25,12 @@ class _LoginScreenState extends State<LoginScreen> {
     _passwordController.dispose();
     super.dispose();
   }
+
+  bool _useEmail = true;
+  bool _isLoading = false;
+  bool _passHidden = true;
+  bool _forgotPassword = true; 
+  bool _keepSignedIn = true;
 
   // Input Formattting 
   InputDecoration _fieldDecoration({
@@ -295,22 +295,6 @@ class _LoginScreenState extends State<LoginScreen> {
         if (text.isEmpty) {
           return "Please enter your password";
         }
-        if (text.length < 8) {
-          return "Password must be at least 8 characters";
-        }
-
-        if (!RegExp(r'[A-Z]').hasMatch(text)) {
-          return "Password must contain at least one uppercase letter";
-        }
-
-        if (!RegExp(r'[a-z]').hasMatch(text)) {
-          return "Password must contain at least one lowercase letter";
-        }
-
-        if (!RegExp(r'[!@#$%^&*(),.?":{}|<>_\-\/\[\];+=~`]').hasMatch(text)) {
-          return "Password must contain at least one special character";
-        }
-
         return null; 
       },
     );

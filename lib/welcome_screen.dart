@@ -3,6 +3,10 @@ import 'package:flutter/material.dart';
 import 'package:bag_flow/signUp_screen.dart';
 import 'package:bag_flow/login_screen.dart';
 
+/// Entry screen shown before the user authenticates.
+///
+/// This screen introduces the app and provides navigation
+/// to the login and sign-up flows.
 class WelcomeScreen extends StatefulWidget {
   const WelcomeScreen({super.key});
 
@@ -10,6 +14,7 @@ class WelcomeScreen extends StatefulWidget {
   State<WelcomeScreen> createState() => _WelcomeScreenState();
 }
 
+/// State implementation for [WelcomeScreen].
 class _WelcomeScreenState extends State<WelcomeScreen> {
   @override
   Widget build(BuildContext context) {
@@ -17,13 +22,14 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
       body: Stack(
         fit: StackFit.expand,
         children: [
-          // Background image
+          // Background hero image used to establish the screen's visual tone.
           const Image(
             image: AssetImage('assets/images/welcome_bkgd.jpg'),
             fit: BoxFit.cover,
           ),
 
-          // Dark overlay for readability (premium look)
+          // Dark gradient overlay improves foreground contrast and keeps
+          // text readable across different areas of the background image.
           Container(
             decoration: BoxDecoration(
               gradient: LinearGradient(
@@ -38,13 +44,15 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
             ),
           ),
 
-          // Subtle blur
+          // Subtle blur softens background details so the primary content
+          // remains the visual focus without fully hiding the image.
           BackdropFilter(
             filter: ImageFilter.blur(sigmaX: 2.0, sigmaY: 2.0),
             child: Container(color: Colors.transparent),
           ),
 
-          // Content
+          // Foreground content is wrapped in SafeArea to avoid system UI
+          // overlap on devices with notches, status bars, or rounded corners.
           SafeArea(
             child: Center(
               child: Padding(
@@ -52,6 +60,8 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
+                    // Friendly hero icon that reinforces the welcoming tone
+                    // of the entry experience.
                     Icon(
                       Icons.waving_hand,
                       size: 160,
@@ -59,6 +69,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                     ),
                     const SizedBox(height: 40),
 
+                    // Primary heading introducing the app to the user.
                     Text(
                       "Welcome to the app",
                       textAlign: TextAlign.center,
@@ -71,6 +82,8 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                     ),
                     const SizedBox(height: 14),
 
+                    // Supporting copy communicates the app's value proposition
+                    // in a short, low-friction message.
                     Text(
                       "Built to help you manage money without the stress.",
                       textAlign: TextAlign.center,
@@ -82,7 +95,8 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                     ),
                     const SizedBox(height: 28),
 
-                    // Login button
+                    // Primary call-to-action directing returning users
+                    // into the login flow.
                     _buildButton(
                       text: "Login",
                       onPressed: () {
@@ -94,7 +108,8 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
 
                     const SizedBox(height: 12),
 
-                    // Create account (text link)
+                    // Secondary action for new users who need to create
+                    // an account before accessing the app.
                     TextButton(
                       onPressed: () {
                         Navigator.of(context).push(
@@ -117,8 +132,12 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
         ],
       ),
     );
-  } // build
+  }
 
+  /// Builds the primary styled button used on this screen.
+  ///
+  /// Extracting this into a helper keeps button styling consistent and
+  /// makes the build method easier to scan.
   Widget _buildButton({
     required String text,
     required VoidCallback onPressed,

@@ -80,19 +80,17 @@ class _ForgotPasswordState extends State<ForgotPassword> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
+                    _backToLoginButton(),
                     const SizedBox(height: 120),
                     _headerSection(),
 
-                    const SizedBox(height: 60),
-                    const Text(
-                      "Email Address",
-                      style: TextStyle(color: Colors.white),
-                    ),
+                    const SizedBox(height: 40),
+                    const Text("Email", style: TextStyle(color: Colors.white)),
                     const SizedBox(height: 5),
                     _emailInput(),
 
                     const SizedBox(height: 15),
-                    _passwordReset(), 
+                    _sendLinkButton(),
 
                     const Spacer(),
                     _createAccount(),
@@ -105,6 +103,36 @@ class _ForgotPasswordState extends State<ForgotPassword> {
       ),
     );
   }
+
+
+  Widget _backToLoginButton() {
+    return SizedBox(
+      width: 55,
+      height: 55, 
+      child: OutlinedButton(
+        style: OutlinedButton.styleFrom(
+          backgroundColor: Colors.white.withOpacity(.14),
+          side: const BorderSide(color: Colors.white24),
+          padding: EdgeInsets.symmetric(vertical: 14),
+          shape: RoundedRectangleBorder(
+            borderRadius: (BorderRadius.circular(14))
+          )
+        ), 
+        onPressed: () {
+          Navigator.push(context, 
+            MaterialPageRoute(builder: (context) => LoginScreen())
+          );
+        }, 
+        child: const Icon(
+          Icons.arrow_back_ios_new, 
+          color: Colors.white,
+          fontWeight: FontWeight.w700,
+          size: 18, 
+        )
+      )
+    ); 
+  }
+
 
   Widget _headerSection() {
     return Column(
@@ -135,27 +163,24 @@ class _ForgotPasswordState extends State<ForgotPassword> {
     );
   }
 
-  Widget _passwordReset() {
+  Widget _sendLinkButton() {
     return SizedBox(
       width: double.infinity,
-      height: 50, 
+      height: 50,
       child: ElevatedButton(
         style: ElevatedButton.styleFrom(
           backgroundColor: const Color(0xFF0A1F44),
         ),
         // Should send email link
-        // When confirmed, directs to reset password page 
+        // When confirmed, directs to reset password page
         onPressed: () {
-          Navigator.push(context,
-            MaterialPageRoute(builder: 
-              (context) => ResetPassword()), 
-          ); 
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => ResetPassword()),
+          );
         },
-        child: const Text(
-          'Reset Password',
-          style: TextStyle(color: Colors.white), 
-        ),
-      )
+        child: const Text('Send Link', style: TextStyle(color: Colors.white)),
+      ),
     );
   }
 
@@ -164,13 +189,16 @@ class _ForgotPasswordState extends State<ForgotPassword> {
       // After wrapped, add a child
       child: TextButton(
         onPressed: () {
-          Navigator.push(context,
-            MaterialPageRoute(builder: (context) => SignUpScreen())); 
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => SignUpScreen()),
+          );
         },
         child: Text(
           "Create an account",
-          style: TextStyle(color: Color(0xFF93C5FD), 
-          fontWeight: FontWeight.w700
+          style: TextStyle(
+            color: Color(0xFF93C5FD),
+            fontWeight: FontWeight.w700,
           ),
         ),
       ),

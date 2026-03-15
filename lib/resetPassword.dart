@@ -9,24 +9,32 @@ class ResetPassword extends StatefulWidget {
 }
 
 class _ResetPasswordState extends State<ResetPassword> {
-  bool _isLoading = false;
-
   final _formKey = GlobalKey<FormState>();
 
   final _passwordController = TextEditingController();
+  final _confirmPasswordController = TextEditingController();
+
+  bool _passHidden = true;
+  bool _confirmPassHidden = true;
+  bool _validPass = false;
 
   @override
   void dispose() {
     _passwordController.dispose();
+    _confirmPasswordController.dispose();
     super.dispose();
   }
 
-  InputDecoration _fieldDecoration({String? hintText}) {
+  InputDecoration _fieldDecoration({String? hintText, Widget? suffix}) {
     return InputDecoration(
       filled: true,
       fillColor: const Color(0xFFF6F7F8),
       hintText: hintText,
-      hintStyle: const TextStyle(color: Color(0xFF9CA3AF)),
+      hintStyle: const TextStyle(
+        color: Color(0xFF9CA3AF),
+        fontWeight: FontWeight.bold,
+      ),
+      suffixIcon: suffix,
       labelStyle: const TextStyle(color: Color(0xFF6B7280)),
       border: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),
@@ -79,7 +87,7 @@ class _ResetPasswordState extends State<ResetPassword> {
                     const SizedBox(height: 100),
                     _headerSection(),
 
-                    const SizedBox(height: 60),
+                    const SizedBox(height: 40),
                     const Text(
                       "Enter new password",
                       style: TextStyle(
@@ -87,6 +95,9 @@ class _ResetPasswordState extends State<ResetPassword> {
                         fontWeight: FontWeight.bold,
                       ),
                     ),
+
+                    const SizedBox(height: 5),
+                    _newPassword(),
 
                     const SizedBox(height: 15),
                     const Text(
@@ -97,8 +108,14 @@ class _ResetPasswordState extends State<ResetPassword> {
                       ),
                     ),
 
+                    const SizedBox(height: 5),
+                    _confirmPassword(),
+
                     const SizedBox(height: 30),
-                    _backToEmailButton(),
+                    _resetPasswordButton(),
+
+                    const SizedBox(height: 15),
+                    _backToLoginButton(),
                   ],
                 ),
               ),
@@ -133,56 +150,164 @@ class _ResetPasswordState extends State<ResetPassword> {
 
   Widget _newPassword() {
     return TextFormField(
-      
-    ); 
+      controller: _passwordController,
+      obscureText: _passHidden,
+      decoration: _fieldDecoration(
+        hintText: "**********",
+        suffix: IconButton(
+          // Change state
+          onPressed: () => setState(() => _passHidden = !_passHidden),
+          icon: Icon(
+            _passHidden ? Icons.visibility_off : Icons.visibility,
+            color: const Color(0xFF9CA3AF),
+          ),
+        ),
+      ),
+      validator: (value) {
+        final text = value?.trim() ?? "";
+
+        if (text.isEmpty) {
+          return "Please enter your password";
+        }
+        if (text.length < 8) {
+          return "Password must be at least 8 characters";
+        }
+
+        if (!RegExp(r'[A-Z]').hasMatch(text)) {
+          return "Password must contain at least one uppercase letter";
+        }
+
+        if (!RegExp(r'[a-z]').hasMatch(text)) {
+          return "Password must contain at least one lowercase letter";
+        }
+
+        if (!RegExp(r'[!@#$%^&*(),.?":{}|<>_\-\/\[\];+=~`]').hasMatch(text)) {
+          return "Password must contain at least one special character";
+        }
+
+        return null;
+      },
+    );
   }
 
-  Widget _backToEmailButton() {
+  Widget _confirmPassword() {
+    return TextFormField(
+      controller: _confirmPasswordController,
+      obscureText: _confirmPassHidden,
+      decoration: _fieldDecoration(
+        hintText: "**********",
+        suffix: IconButton(
+          onPressed: () =>
+              setState(() => _confirmPassHidden = !_confirmPassHidden),
+          icon: Icon(
+            _confirmPassHidden ? Icons.visibility_off : Icons.visibility,
+            color: const Color(0xFF9CA3AF),
+          ),
+        ),
+      ),
+      validator: (value) {
+        final text = value?.trim() ?? "";
+
+        if (text.isEmpty) {
+          return "Please re-enter your password";
+        }
+
+        if (text != _passwordController.text) {
+          return "Password does not match";
+        }
+
+        return null;
+      },
+    );
+  }
+
+  Widget _resetPasswordButton() {
     return SizedBox(
       width: double.infinity,
+      height: 55,
       child: OutlinedButton(
-        // Add a function here
-        onPressed: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => const LoginScreen()),
+        onPressed: () { 
+          // Default: passes all validators 
+          final isValid = _formKey.currentState!.validate(); 
+
+          // If validators are not ALL passed, return an error message 
+          if (!isValid) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text(
+                  "Please fix the errors above",
+                  textAlign: TextAlign.center,
+                ),
+                backgroundColor: Colors.red,
+              ),
+            );
+            return; 
+          }
+
+          // Change the state of validity to true when all validation is
+          setState(() {
+            _validPass = true; 
+          });
+
+          // Change the content of the snackbar to reflect successful reset  
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text(
+                "Password reset successful",
+                textAlign: TextAlign.center,
+              ),
+              backgroundColor: Colors.green,
+            ),
           );
         },
         style: OutlinedButton.styleFrom(
-          backgroundColor: Colors.white.withOpacity(0.14),
+          backgroundColor: const Color(0xFF0A1F44),
           side: const BorderSide(color: Colors.white24),
           padding: const EdgeInsets.symmetric(vertical: 14),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(14),
           ),
         ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: const [
-            Icon(Icons.g_mobiledata, size: 28, color: Colors.white),
-            SizedBox(width: 10),
-            Text(
-              "Login with email",
-              style: TextStyle(
-                color: Colors.white,
-                fontWeight: FontWeight.w700,
-              ),
-            ),
-          ],
+        child: Text(
+          _validPass ? "Password Reset Successful" :  "Change Password",
+          style: TextStyle(color: Colors.white, fontWeight: FontWeight.w700),
         ),
       ),
+    );
+  }
+
+  Widget _backToLoginButton() {
+    return SizedBox(
+      width: double.infinity,
+      height: 55,
+      child: OutlinedButton(
+        onPressed: () {
+          Navigator.push(context,
+            MaterialPageRoute(builder: (context) => const LoginScreen())); 
+        },
+        style: OutlinedButton.styleFrom(
+          backgroundColor: Colors.white.withOpacity(.14),
+          side: const BorderSide(color: Colors.white24),
+          padding: EdgeInsets.symmetric(vertical: 14), 
+          shape: RoundedRectangleBorder(
+            borderRadius: (BorderRadius.circular(14))
+          )
+        ),
+        child: const Text(
+          "Return to Login",
+          style: TextStyle(
+            color: Colors.white, 
+            fontWeight: FontWeight.w700,
+          ), 
+        )
+      )
+
     );
   }
 
   // Review what this does
   void _submitLogin() async {
     if (!_formKey.currentState!.validate()) return;
-
-    setState(() => _isLoading = true);
-
-    await Future.delayed(const Duration(seconds: 1));
-
-    setState(() => _isLoading = false);
 
     final username = _passwordController.text.trim();
 
