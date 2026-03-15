@@ -32,33 +32,6 @@ class _LoginScreenState extends State<LoginScreen> {
   bool _forgotPassword = true; 
   bool _keepSignedIn = true;
 
-  InputDecoration _fieldDecoration({
-    required hintText, 
-    required IconData icon,
-    Widget? suffix,
-  }) {
-    return InputDecoration(
-      hintText: hintText,
-      hintStyle: const TextStyle(color: Colors.grey), 
-      filled: true,
-      fillColor: const Color(0xFFF6F7F8),
-      prefixIcon: Icon(icon, color: const Color(0xFF9CA3AF)),
-      suffixIcon: suffix,
-      border: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(12),
-        borderSide: const BorderSide(color: Color(0xFFE5E7EB)),
-      ),
-      enabledBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(12),
-        borderSide: const BorderSide(color: Color(0xFFE5E7EB)),
-      ),
-      focusedBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(12),
-        borderSide: const BorderSide(color: Color(0xFF2563EB), width: 1.5),
-      ),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -223,9 +196,11 @@ class _LoginScreenState extends State<LoginScreen> {
           ? TextInputType.emailAddress
           : TextInputType.phone,
       style: const TextStyle(color: Colors.black),
-      decoration: _fieldDecoration(
-        hintText: "jeffreyEpstein@gmail.com", 
-        icon: _useEmail ? Icons.email_outlined : Icons.phone_outlined,
+      decoration: InputDecoration(
+        hintText: "name@example.com", 
+        prefixIcon: Icon(
+          _useEmail ? Icons.email_outlined : Icons.phone_outlined,
+        )
       ),
       validator: (value) {
         // What does this mean?
@@ -275,9 +250,9 @@ class _LoginScreenState extends State<LoginScreen> {
       controller: _passwordController,
       obscureText: _passHidden,
       style: const TextStyle(color: Colors.black),
-      decoration: _fieldDecoration(
+      decoration: InputDecoration(
         hintText: "**************",
-        icon: Icons.lock_outline,
+        prefixIcon: const Icon(Icons.lock_outline),
         suffix: IconButton(
           onPressed: () => setState(() => _passHidden = !_passHidden),
           icon: Icon(
