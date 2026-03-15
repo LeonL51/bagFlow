@@ -127,10 +127,8 @@ class _LoginScreenState extends State<LoginScreen> {
                     const SizedBox(height: 4),
                     _password(),
 
-                    const SizedBox(height: 18),
                     _keepSignedin(),
 
-                    const SizedBox(height: 8),
                     _isLoading
                         ? const Center(child: CircularProgressIndicator())
                         : _loginButton(),
