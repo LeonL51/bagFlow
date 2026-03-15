@@ -14,9 +14,6 @@ class _PhoneNumberState extends State<PhoneNumber> {
   final _formKey = GlobalKey<FormState>();
   final _phoneController = TextEditingController();
 
-  bool _isLoading = false;
-  bool _keepSignedIn = true;
-
   String _fullPhoneNumber = "";
 
   @override
@@ -95,8 +92,7 @@ class _PhoneNumberState extends State<PhoneNumber> {
                     const SizedBox(height: 5),
                     _phoneNumber(),
 
-                    const SizedBox(height: 1),
-                    _keepSignedin(),
+                    const SizedBox(height: 15),
                     _getOTP(),
 
                     const SizedBox(height: 15),
@@ -169,28 +165,6 @@ class _PhoneNumberState extends State<PhoneNumber> {
           _phoneController.clear();
         });
       },
-    );
-  }
-
-  Widget _keepSignedin() {
-    return Row(
-      children: [
-        Checkbox(
-          value: _keepSignedIn,
-          onChanged: (value) {
-            setState(() {
-              _keepSignedIn = value ?? true;
-            });
-          },
-          activeColor: const Color(0xFF2563EB),
-          checkColor: Colors.white,
-        ),
-        const SizedBox(width: 2),
-        const Text(
-          "Keep me signed in",
-          style: TextStyle(color: Colors.white, fontSize: 14),
-        ),
-      ],
     );
   }
 
@@ -271,12 +245,6 @@ class _PhoneNumberState extends State<PhoneNumber> {
   // Review what this does
   void _submitLogin() async {
     if (!_formKey.currentState!.validate()) return;
-
-    setState(() => _isLoading = true);
-
-    await Future.delayed(const Duration(seconds: 1));
-
-    setState(() => _isLoading = false);
 
     final username = _phoneController.text.trim();
 

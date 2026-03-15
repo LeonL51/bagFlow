@@ -14,16 +14,16 @@ class _ResetPasswordState extends State<ResetPassword> {
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
 
-  bool _passHidden = true;
-  bool _confirmPassHidden = true;
-  bool _validPass = false;
-
   @override
   void dispose() {
     _passwordController.dispose();
     _confirmPasswordController.dispose();
     super.dispose();
   }
+
+  bool _passHidden = true;
+  bool _confirmPassHidden = true;
+  bool _validPass = false;
 
   InputDecoration _fieldDecoration({String? hintText, Widget? suffix}) {
     return InputDecoration(

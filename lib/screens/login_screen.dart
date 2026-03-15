@@ -32,7 +32,6 @@ class _LoginScreenState extends State<LoginScreen> {
   bool _forgotPassword = true; 
   bool _keepSignedIn = true;
 
-  // Input Formattting 
   InputDecoration _fieldDecoration({
     required hintText, 
     required IconData icon,
@@ -303,7 +302,6 @@ class _LoginScreenState extends State<LoginScreen> {
   Widget _keepSignedin() {
     return Row(
       children: [
-        // Review this
         Checkbox(
           value: _keepSignedIn,
           onChanged: (value) {
@@ -348,7 +346,6 @@ class _LoginScreenState extends State<LoginScreen> {
         onPressed: () {},
         style: OutlinedButton.styleFrom(
           backgroundColor: Colors.white.withOpacity(0.14),
-          // See what the side does
           side: const BorderSide(color: Colors.white24),
           padding: const EdgeInsets.symmetric(vertical: 14),
           shape: RoundedRectangleBorder(
@@ -392,7 +389,6 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 
-  // Review what this does 
   void _submitLogin() async {
     if (!_formKey.currentState!.validate()) return;
 

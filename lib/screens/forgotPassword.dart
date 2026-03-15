@@ -1,8 +1,8 @@
 import 'package:bag_flow/screens/login_screen.dart';
 import 'package:bag_flow/screens/resetPassword.dart';
 import 'package:bag_flow/screens/signUp_screen.dart';
-import 'package:flutter/material.dart';
 import 'package:intl_phone_field/intl_phone_field.dart';
+import 'package:flutter/material.dart';
 
 class ForgotPassword extends StatefulWidget {
   const ForgotPassword({super.key});
@@ -12,9 +12,6 @@ class ForgotPassword extends StatefulWidget {
 }
 
 class _ForgotPasswordState extends State<ForgotPassword> {
-  bool _isLoading = false;
-  bool _keepSignedIn = true;
-
   final _formKey = GlobalKey<FormState>();
 
   final _emailController = TextEditingController();
@@ -208,12 +205,6 @@ class _ForgotPasswordState extends State<ForgotPassword> {
   // Review what this does
   void _submitLogin() async {
     if (!_formKey.currentState!.validate()) return;
-
-    setState(() => _isLoading = true);
-
-    await Future.delayed(const Duration(seconds: 1));
-
-    setState(() => _isLoading = false);
 
     final username = _emailController.text.trim();
 

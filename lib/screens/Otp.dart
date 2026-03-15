@@ -19,8 +19,6 @@ class _OtpState extends State<Otp> {
 
   final List<FocusNode> _focusNodes = List.generate(5, (_) => FocusNode());
 
-  bool _passHidden = true;
-
   @override
   void dispose() {
     for (final controller in _otpControllers) {

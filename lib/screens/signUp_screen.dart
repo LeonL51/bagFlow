@@ -10,11 +10,6 @@ class SignUpScreen extends StatefulWidget {
 }
 
 class _SignUpScreenState extends State<SignUpScreen> {
-
-  bool _passHidden = true;
-  bool _useEmail = true;
-  bool _isLoading = false;
-
   final _formKey = GlobalKey<FormState>();
 
   final _nameController = TextEditingController();
@@ -28,6 +23,10 @@ class _SignUpScreenState extends State<SignUpScreen> {
     _passwordController.dispose();
     super.dispose();
   }
+
+  bool _passHidden = true;
+  bool _useEmail = true;
+  bool _isLoading = false;
 
   // Input Formattting
   InputDecoration _fieldDecoration({hintText, IconData? icon, Widget? suffix}) {
