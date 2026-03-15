@@ -1,7 +1,10 @@
-import 'package:bag_flow/screens/forgotPassword.dart';
 import 'package:flutter/material.dart';
+import 'package:bag_flow/screens/forgotPassword.dart';
+import 'package:bag_flow/screens/phoneNumber.dart';
 import 'package:bag_flow/screens/signUp_screen.dart';
-import 'package:bag_flow/screens/phoneNumber.dart'; 
+import 'package:bag_flow/widgets/auth_divider.dart';
+import 'package:bag_flow/widgets/auth_scaffold.dart';
+import 'package:bag_flow/widgets/auth_section_label.dart'; 
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -11,12 +14,17 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> {
-
   final _formKey = GlobalKey<FormState>();
 
   final _emailController = TextEditingController();
   final _phoneController = TextEditingController();
   final _passwordController = TextEditingController();
+
+  bool _useEmail = true;
+  bool _isLoading = false;
+  bool _passHidden = true;
+  bool _forgotPassword = true;
+  bool _keepSignedIn = true;
 
   @override
   void dispose() {
@@ -26,118 +34,68 @@ class _LoginScreenState extends State<LoginScreen> {
     super.dispose();
   }
 
-  bool _useEmail = true;
-  bool _isLoading = false;
-  bool _passHidden = true;
-  bool _forgotPassword = true; 
-  bool _keepSignedIn = true;
-
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: Stack(
-        fit: StackFit.expand,
-        children: [
-          const Image(
-            image: AssetImage('assets/images/welcome_bkgd.jpg'),
-            fit: BoxFit.cover,
-          ),
-
-          Container(
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-                colors: [
-                  Colors.black.withOpacity(.55),
-                  Colors.black.withOpacity(.35),
-                  Colors.black.withOpacity(.55),
-                ],
-              ),
-            ),
-          ),
-
-          SafeArea(
-            child: Padding(
-              padding: const EdgeInsets.all(24),
-              child: Form(
-                key: _formKey,
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    _headerSection(),
-
-                    const SizedBox(height: 26),
-                    _loginMethodTabs(),
-
-                    const SizedBox(height: 18),
-                    const Text('Email', 
-                    style: TextStyle(color: Colors.white)),
-
-                    const SizedBox(height: 4),
-                    _email(),
-
-                    const SizedBox(height: 20),
-                    Row(
-                      children: [
-                        const Text(
-                          'Password', 
-                          style: TextStyle(color: Colors.white)
-                        ),
-                        const Spacer(),
-                        _tabButton(
-                          title: "Forgot Password?",
-                          selected: _forgotPassword, 
-                          onTap: () => {
-                            Navigator.push(context, 
-                              MaterialPageRoute(builder: (context) => const ForgotPassword())),
-                          }
-                        ), 
-                      ],
-                    ),
-                    
-                    const SizedBox(height: 4),
-                    _password(),
-
-                    _keepSignedin(),
-
-                    _isLoading
-                        ? const Center(child: CircularProgressIndicator())
-                        : _loginButton(),
-
-                    const SizedBox(height: 30),
-                    _divider(),
-
-                    const SizedBox(height: 30),
-                    _googleButton(),
-
-                    const SizedBox(height: 14),
-                    _createAccount(),
-                  ],
+    return AuthScaffold(
+      child: Form(
+        key: _formKey,
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _headerSection(),
+            const SizedBox(height: 26),
+            _loginMethodTabs(),
+            const SizedBox(height: 18),
+            AuthSectionLabel(text: _useEmail ? 'Email' : 'Phone Number'),
+            const SizedBox(height: 4),
+            _email(),
+            const SizedBox(height: 20),
+            Row(
+              children: [
+                const Text('Password', style: TextStyle(color: Colors.white)),
+                const Spacer(),
+                _tabButton(
+                  title: "Forgot Password?",
+                  selected: _forgotPassword,
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const ForgotPassword(),
+                      ),
+                    );
+                  },
                 ),
-              ),
+              ],
             ),
-          ),
-        ],
+            const SizedBox(height: 4),
+            _password(),
+            _keepSignedin(),
+            _isLoading
+                ? const Center(child: CircularProgressIndicator())
+                : _loginButton(),
+            const SizedBox(height: 30),
+            const AuthDivider(text: 'or sign in with'), 
+            const SizedBox(height: 30),
+            _googleButton(),
+            const SizedBox(height: 14),
+            _createAccount(),
+          ],
+        ),
       ),
     );
   }
 
   Widget _headerSection() {
+    final textTheme = Theme.of(context).textTheme;
+
     return Center(
       child: Column(
-        children: const [
-          Text('Login', style: TextStyle(
-            fontSize: 36, 
-            color: Colors.white,
-            fontWeight: FontWeight.bold, 
-          )),
-          SizedBox(height: 10),
-          Text(
-            'Welcome back to the app',
-            style: TextStyle(color: Color(0xFFE5E7EB), fontSize: 16),
-          ),
+        children: [
+          Text('Login', style: textTheme.headlineLarge),
+          const SizedBox(height: 10),
+          Text('Welcome back to the app', style: textTheme.bodyLarge),
         ],
       ),
     );
@@ -156,13 +114,12 @@ class _LoginScreenState extends State<LoginScreen> {
           title: "Phone Number",
           selected: !_useEmail,
           onTap: () {
-            setState(() => _useEmail = false); 
-
-            Navigator.push(context, 
-            MaterialPageRoute(
-              builder: (context) => const PhoneNumber()), 
+            setState(() => _useEmail = false);
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => const PhoneNumber()),
             );
-          }
+          },
         ),
       ],
     );
@@ -197,13 +154,12 @@ class _LoginScreenState extends State<LoginScreen> {
           : TextInputType.phone,
       style: const TextStyle(color: Colors.black),
       decoration: InputDecoration(
-        hintText: "name@example.com", 
+        hintText: _useEmail ? 'name@example.com' : '9175553333',
         prefixIcon: Icon(
           _useEmail ? Icons.email_outlined : Icons.phone_outlined,
-        )
+        ),
       ),
       validator: (value) {
-        // What does this mean?
         final text = value?.trim() ?? "";
 
         if (text.isEmpty) {
@@ -217,7 +173,6 @@ class _LoginScreenState extends State<LoginScreen> {
             return "Please enter a valid email";
           }
         } else {
-          // Review this
           final digits = text.replaceAll(RegExp(r'\D'), '');
           if (digits.length < 10) {
             return "Enter a valid phone number";
@@ -225,23 +180,6 @@ class _LoginScreenState extends State<LoginScreen> {
         }
         return null;
       },
-    );
-  }
-
-  Widget _loginButton() {
-    return SizedBox(
-      width: double.infinity,
-      height: 50,
-      child: ElevatedButton(
-        style: ElevatedButton.styleFrom(
-          backgroundColor: const Color(0xFF0A1F44),
-        ),
-        onPressed: _submitLogin,
-        child: const Text(
-          "Login",
-          style: TextStyle(color: Colors.white),
-        ),
-      ),
     );
   }
 
@@ -253,12 +191,9 @@ class _LoginScreenState extends State<LoginScreen> {
       decoration: InputDecoration(
         hintText: "**************",
         prefixIcon: const Icon(Icons.lock_outline),
-        suffix: IconButton(
+        suffixIcon: IconButton(
           onPressed: () => setState(() => _passHidden = !_passHidden),
-          icon: Icon(
-            _passHidden ? Icons.visibility_off : Icons.visibility,
-            color: const Color(0xFF9CA3AF),
-          ),
+          icon: Icon(_passHidden ? Icons.visibility_off : Icons.visibility),
         ),
       ),
       validator: (value) {
@@ -267,7 +202,7 @@ class _LoginScreenState extends State<LoginScreen> {
         if (text.isEmpty) {
           return "Please enter your password";
         }
-        return null; 
+        return null;
       },
     );
   }
@@ -279,7 +214,6 @@ class _LoginScreenState extends State<LoginScreen> {
           value: _keepSignedIn,
           onChanged: (value) {
             setState(() {
-              // Value becomes false and unchecked 
               _keepSignedIn = value!;
             });
           },
@@ -295,19 +229,13 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 
-  Widget _divider() {
-    return Row(
-      children: [
-        Expanded(child: Container(height: 1, color: Colors.white24)),
-        const Padding(
-          padding: EdgeInsets.symmetric(horizontal: 12),
-          child: Text(
-            "or sign in with",
-            style: TextStyle(color: Colors.white70, fontSize: 14),
-          ),
-        ),
-        Expanded(child: Container(height: 1, color: Colors.white24)),
-      ],
+  Widget _loginButton() {
+    return SizedBox(
+      width: double.infinity,
+      child: ElevatedButton(
+        onPressed: _submitLogin,
+        child: const Text("Login"),
+      ),
     );
   }
 
@@ -315,7 +243,6 @@ class _LoginScreenState extends State<LoginScreen> {
     return SizedBox(
       width: double.infinity,
       child: OutlinedButton(
-        // Add a function here
         onPressed: () {},
         style: OutlinedButton.styleFrom(
           backgroundColor: Colors.white.withOpacity(0.14),
@@ -375,8 +302,8 @@ class _LoginScreenState extends State<LoginScreen> {
         ? _emailController.text.trim()
         : _phoneController.text.trim();
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text("$username is logged in")),
-    );
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text("$username is logged in")));
   }
 }
