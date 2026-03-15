@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl_phone_field/intl_phone_field.dart';
-import 'package:bag_flow/login_screen.dart';
-import 'package:bag_flow/Otp.dart';
+import 'package:bag_flow/screens/login_screen.dart';
+import 'package:bag_flow/screens/Otp.dart';
 
 class PhoneNumber extends StatefulWidget {
   const PhoneNumber({super.key});

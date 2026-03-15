@@ -1,6 +1,6 @@
-import 'package:bag_flow/login_screen.dart';
-import 'package:bag_flow/resetPassword.dart';
-import 'package:bag_flow/signUp_screen.dart';
+import 'package:bag_flow/screens/login_screen.dart';
+import 'package:bag_flow/screens/resetPassword.dart';
+import 'package:bag_flow/screens/signUp_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:intl_phone_field/intl_phone_field.dart';
 

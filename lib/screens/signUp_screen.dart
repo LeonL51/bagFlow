@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:bag_flow/signUp_screen.dart';
-import 'package:bag_flow/login_screen.dart';
+import 'package:bag_flow/screens/signUp_screen.dart';
+import 'package:bag_flow/screens/login_screen.dart';
 
 class SignUpScreen extends StatefulWidget {
   const SignUpScreen({super.key});
@@ -10,7 +10,7 @@ class SignUpScreen extends StatefulWidget {
 }
 
 class _SignUpScreenState extends State<SignUpScreen> {
-  
+
   bool _passHidden = true;
   bool _useEmail = true;
   bool _isLoading = false;

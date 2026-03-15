@@ -1,7 +1,7 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
-import 'package:bag_flow/signUp_screen.dart';
-import 'package:bag_flow/login_screen.dart';
+import 'package:bag_flow/screens/signUp_screen.dart';
+import 'package:bag_flow/screens/login_screen.dart';
 
 /// Entry screen shown before the user authenticates.
 ///

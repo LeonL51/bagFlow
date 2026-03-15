@@ -1,7 +1,7 @@
-import 'package:bag_flow/forgotPassword.dart';
+import 'package:bag_flow/screens/forgotPassword.dart';
 import 'package:flutter/material.dart';
-import 'package:bag_flow/signUp_screen.dart';
-import 'package:bag_flow/phoneNumber.dart'; 
+import 'package:bag_flow/screens/signUp_screen.dart';
+import 'package:bag_flow/screens/phoneNumber.dart'; 
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
