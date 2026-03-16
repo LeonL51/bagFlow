@@ -1,3 +1,4 @@
+import 'package:bag_flow/widgets/auth_googleContinue.dart';
 import 'package:bag_flow/widgets/auth_header.dart';
 import 'package:flutter/material.dart';
 import 'package:bag_flow/screens/signUp_screen.dart';
@@ -74,7 +75,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
             AuthDivider(text: 'or'),
 
             const SizedBox(height: 20),
-            _googleButton(),
+            AuthGoogleButton(onPressed: () {}),
 
             const SizedBox(height: 14),
             _signIn(),
@@ -225,39 +226,6 @@ class _SignUpScreenState extends State<SignUpScreen> {
         ),
         Expanded(child: Container(height: 1, color: Colors.white24)),
       ],
-    );
-  }
-
-  Widget _googleButton() {
-    return SizedBox(
-      width: double.infinity,
-      child: OutlinedButton(
-        // Add a function here
-        onPressed: () {},
-        style: OutlinedButton.styleFrom(
-          backgroundColor: Colors.white.withOpacity(0.14),
-          // See what the side does
-          side: const BorderSide(color: Colors.white24),
-          padding: const EdgeInsets.symmetric(vertical: 14),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(14),
-          ),
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: const [
-            Icon(Icons.g_mobiledata, size: 28, color: Colors.white),
-            SizedBox(width: 10),
-            Text(
-              "Continue with Google",
-              style: TextStyle(
-                color: Colors.white,
-                fontWeight: FontWeight.w700,
-              ),
-            ),
-          ],
-        ),
-      ),
     );
   }
 

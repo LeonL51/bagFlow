@@ -1,3 +1,4 @@
+import 'package:bag_flow/widgets/auth_googleContinue.dart';
 import 'package:bag_flow/widgets/auth_header.dart';
 import 'package:flutter/material.dart';
 import 'package:bag_flow/screens/forgotPassword.dart';
@@ -70,7 +71,7 @@ class _LoginScreenState extends State<LoginScreen> {
             const SizedBox(height: 30),
             const AuthDivider(text: 'or sign in with'),
             const SizedBox(height: 30),
-            _googleButton(),
+            AuthGoogleButton(onPressed: () {}),
             const SizedBox(height: 14),
             _createAccount(),
           ],
@@ -233,37 +234,6 @@ class _LoginScreenState extends State<LoginScreen> {
         // Replace this function
         onPressed: _submitLogin,
         child: const Text('Login'),
-      ),
-    );
-  }
-
-  Widget _googleButton() {
-    return SizedBox(
-      width: double.infinity,
-      child: OutlinedButton(
-        onPressed: () {},
-        style: OutlinedButton.styleFrom(
-          backgroundColor: Colors.white.withOpacity(0.14),
-          side: const BorderSide(color: Colors.white24),
-          padding: const EdgeInsets.symmetric(vertical: 14),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(14),
-          ),
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: const [
-            Icon(Icons.g_mobiledata, size: 28, color: Colors.white),
-            SizedBox(width: 10),
-            Text(
-              "Continue with Google",
-              style: TextStyle(
-                color: Colors.white,
-                fontWeight: FontWeight.w700,
-              ),
-            ),
-          ],
-        ),
       ),
     );
   }
