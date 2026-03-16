@@ -70,27 +70,9 @@ class _SignUpScreenState extends State<SignUpScreen> {
             _password(),
 
             const SizedBox(height: 18),
-            // Leave terms of service alone for now
-            Center(
-              child: RichText(
-                text: const TextSpan(
-                  style: TextStyle(color: Colors.white),
-                  children: [
-                    TextSpan(text: "By continuing, you agree to our "),
-                    TextSpan(
-                      text: "terms of service.",
-                      style: TextStyle(
-                        color: Color.fromARGB(255, 0, 140, 254),
-                        decoration: TextDecoration.underline,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
+            _termsOfService(),
 
-            const SizedBox(height: 7),
+            const SizedBox(height: 8),
             _isLoading
                 ? const Center(child: CircularProgressIndicator())
                 : _signUp(),
@@ -116,7 +98,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
       style: const TextStyle(color: Colors.black),
       decoration: InputDecoration(
         hintText: 'John Doe',
-        prefixIcon: Icon(Icons.person), 
+        prefixIcon: Icon(Icons.person),
       ),
       validator: (value) {
         final text = value?.trim() ?? "";
@@ -145,7 +127,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
       style: const TextStyle(color: Colors.black),
       decoration: InputDecoration(
         hintText: 'hello@example.com',
-        prefixIcon: Icon(Icons.email_outlined)
+        prefixIcon: Icon(Icons.email_outlined),
       ),
       validator: (value) {
         final text = value?.trim() ?? "";
@@ -203,6 +185,27 @@ class _SignUpScreenState extends State<SignUpScreen> {
 
         return null;
       },
+    );
+  }
+
+  Widget _termsOfService() {
+    return Center(
+      child: RichText(
+        text: const TextSpan(
+          style: TextStyle(color: Colors.white),
+          children: [
+            TextSpan(text: "By continuing, you agree to our "),
+            TextSpan(
+              text: "terms of service.",
+              style: TextStyle(
+                color: Color.fromARGB(255, 0, 140, 254),
+                decoration: TextDecoration.underline,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 
