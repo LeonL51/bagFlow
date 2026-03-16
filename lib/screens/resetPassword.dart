@@ -1,5 +1,8 @@
-import 'package:bag_flow/screens/login_screen.dart';
+import 'package:bag_flow/widgets/auth_divider.dart';
+import 'package:bag_flow/widgets/auth_section_label.dart';
 import 'package:flutter/material.dart';
+import 'package:bag_flow/screens/login_screen.dart';
+import 'package:bag_flow/widgets/auth_scaffold.dart';
 
 class ResetPassword extends StatefulWidget {
   const ResetPassword({super.key});
@@ -12,6 +15,7 @@ class _ResetPasswordState extends State<ResetPassword> {
   final _formKey = GlobalKey<FormState>();
 
   final _passwordController = TextEditingController();
+
   final _confirmPasswordController = TextEditingController();
 
   @override
@@ -25,103 +29,39 @@ class _ResetPasswordState extends State<ResetPassword> {
   bool _confirmPassHidden = true;
   bool _validPass = false;
 
-  InputDecoration _fieldDecoration({String? hintText, Widget? suffix}) {
-    return InputDecoration(
-      filled: true,
-      fillColor: const Color(0xFFF6F7F8),
-      hintText: hintText,
-      hintStyle: const TextStyle(
-        color: Color(0xFF9CA3AF),
-        fontWeight: FontWeight.bold,
-      ),
-      suffixIcon: suffix,
-      labelStyle: const TextStyle(color: Color(0xFF6B7280)),
-      border: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(12),
-        borderSide: const BorderSide(color: Color(0xFFE5E7EB)),
-      ),
-      enabledBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(12),
-        borderSide: const BorderSide(color: Color(0xFFE5E7EB)),
-      ),
-      focusedBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(12),
-        borderSide: const BorderSide(color: Color(0xFF2563EB), width: 1.5),
-      ),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: Stack(
-        fit: StackFit.expand,
-        children: [
-          const Image(
-            image: AssetImage('assets/images/welcome_bkgd.jpg'),
-            fit: BoxFit.cover,
-          ),
+    return AuthScaffold(
+      child: Form(
+        key: _formKey,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const SizedBox(height: 100),
+            _headerSection(),
 
-          Container(
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-                colors: [
-                  Colors.black.withOpacity(.55),
-                  Colors.black.withOpacity(.35),
-                  Colors.black.withOpacity(.55),
-                ],
-              ),
-            ),
-          ),
+            const SizedBox(height: 40),
+            AuthSectionLabel(text: 'Enter new password'), 
 
-          SafeArea(
-            child: Padding(
-              padding: const EdgeInsets.all(24),
-              child: Form(
-                key: _formKey,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const SizedBox(height: 100),
-                    _headerSection(),
+            const SizedBox(height: 5),
+            _newPassword(),
 
-                    const SizedBox(height: 40),
-                    const Text(
-                      "Enter new password",
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
+            const SizedBox(height: 15),
+            AuthSectionLabel(text: 'Re-enter new password'), 
 
-                    const SizedBox(height: 5),
-                    _newPassword(),
+            const SizedBox(height: 5),
+            _confirmPassword(),
 
-                    const SizedBox(height: 15),
-                    const Text(
-                      'Re-enter new password',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
+            const SizedBox(height: 30),
+            _resetPasswordButton(),
 
-                    const SizedBox(height: 5),
-                    _confirmPassword(),
+            const SizedBox(height: 20),
+            AuthDivider(text: 'or'),
 
-                    const SizedBox(height: 30),
-                    _resetPasswordButton(),
-
-                    const SizedBox(height: 15),
-                    _backToLoginButton(),
-                  ],
-                ),
-              ),
-            ),
-          ),
-        ],
+            const SizedBox(height: 20),
+            _backToLoginButton(),
+          ],
+        ),
       ),
     );
   }
@@ -152,10 +92,9 @@ class _ResetPasswordState extends State<ResetPassword> {
     return TextFormField(
       controller: _passwordController,
       obscureText: _passHidden,
-      decoration: _fieldDecoration(
+      decoration: InputDecoration(
         hintText: "**********",
-        suffix: IconButton(
-          // Change state
+        suffixIcon: IconButton(
           onPressed: () => setState(() => _passHidden = !_passHidden),
           icon: Icon(
             _passHidden ? Icons.visibility_off : Icons.visibility,
@@ -194,9 +133,9 @@ class _ResetPasswordState extends State<ResetPassword> {
     return TextFormField(
       controller: _confirmPasswordController,
       obscureText: _confirmPassHidden,
-      decoration: _fieldDecoration(
+      decoration: InputDecoration(
         hintText: "**********",
-        suffix: IconButton(
+        suffixIcon: IconButton(
           onPressed: () =>
               setState(() => _confirmPassHidden = !_confirmPassHidden),
           icon: Icon(
@@ -224,13 +163,12 @@ class _ResetPasswordState extends State<ResetPassword> {
   Widget _resetPasswordButton() {
     return SizedBox(
       width: double.infinity,
-      height: 55,
-      child: OutlinedButton(
-        onPressed: () { 
-          // Default: passes all validators 
-          final isValid = _formKey.currentState!.validate(); 
+      child: ElevatedButton(
+        onPressed: () {
+          // Default: passes all validators
+          final isValid = _formKey.currentState!.validate();
 
-          // If validators are not ALL passed, return an error message 
+          // If validators are not ALL passed, return an error message
           if (!isValid) {
             ScaffoldMessenger.of(context).showSnackBar(
               const SnackBar(
@@ -241,15 +179,15 @@ class _ResetPasswordState extends State<ResetPassword> {
                 backgroundColor: Colors.red,
               ),
             );
-            return; 
+            return;
           }
 
           // Change the state of validity to true when all validation is
           setState(() {
-            _validPass = true; 
+            _validPass = true;
           });
 
-          // Change the content of the snackbar to reflect successful reset  
+          // Change the content of the snackbar to reflect successful reset
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
               content: Text(
@@ -260,17 +198,10 @@ class _ResetPasswordState extends State<ResetPassword> {
             ),
           );
         },
-        style: OutlinedButton.styleFrom(
-          backgroundColor: const Color(0xFF0A1F44),
-          side: const BorderSide(color: Colors.white24),
-          padding: const EdgeInsets.symmetric(vertical: 14),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(14),
-          ),
-        ),
         child: Text(
-          _validPass ? "Password Reset Successful" :  "Change Password",
-          style: TextStyle(color: Colors.white, fontWeight: FontWeight.w700),
+          _validPass 
+            ? "Password Reset Successful" 
+            : "Change Password"
         ),
       ),
     );
@@ -282,26 +213,24 @@ class _ResetPasswordState extends State<ResetPassword> {
       height: 55,
       child: OutlinedButton(
         onPressed: () {
-          Navigator.push(context,
-            MaterialPageRoute(builder: (context) => const LoginScreen())); 
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => const LoginScreen()),
+          );
         },
         style: OutlinedButton.styleFrom(
           backgroundColor: Colors.white.withOpacity(.14),
           side: const BorderSide(color: Colors.white24),
-          padding: EdgeInsets.symmetric(vertical: 14), 
+          padding: EdgeInsets.symmetric(vertical: 14),
           shape: RoundedRectangleBorder(
-            borderRadius: (BorderRadius.circular(14))
-          )
+            borderRadius: (BorderRadius.circular(14)),
+          ),
         ),
         child: const Text(
           "Return to Login",
-          style: TextStyle(
-            color: Colors.white, 
-            fontWeight: FontWeight.w700,
-          ), 
-        )
-      )
-
+          style: TextStyle(color: Colors.white, fontWeight: FontWeight.w700),
+        ),
+      ),
     );
   }
 

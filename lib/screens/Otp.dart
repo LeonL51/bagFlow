@@ -1,6 +1,7 @@
 import 'package:bag_flow/screens/login_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:bag_flow/widgets/auth_scaffold.dart';
 
 class Otp extends StatefulWidget {
   const Otp({super.key});
@@ -34,53 +35,24 @@ class _OtpState extends State<Otp> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: Stack(
-        fit: StackFit.expand,
-        children: [
-          const Image(
-            image: AssetImage('assets/images/welcome_bkgd.jpg'),
-            fit: BoxFit.cover,
-          ),
+    return AuthScaffold(
+      child: Form(
+        key: _formKey,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const SizedBox(height: 140),
+            _headerSection(),
 
-          Container(
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-                colors: [
-                  Colors.black.withOpacity(.55),
-                  Colors.black.withOpacity(.35),
-                  Colors.black.withOpacity(.55),
-                ],
-              ),
-            ),
-          ),
+            const SizedBox(height: 40),
+            _otpFields(),
 
-          SafeArea(
-            child: Padding(
-              padding: const EdgeInsets.all(24),
-              child: Form(
-                key: _formKey,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const SizedBox(height: 140),
-                    _headerSection(),
+            const SizedBox(height: 15),
 
-                    const SizedBox(height: 40),
-                    _otpFields(),
-
-                    const SizedBox(height: 15),
-
-                    const SizedBox(height: 30),
-                    _verifyButton(),
-                  ],
-                ),
-              ),
-            ),
-          ),
-        ],
+            const SizedBox(height: 30),
+            _verifyButton(),
+          ],
+        ),
       ),
     );
   }
@@ -143,11 +115,11 @@ class _OtpState extends State<Otp> {
                 if (index < _focusNodes.length - 1) {
                   _focusNodes[index + 1].requestFocus();
                 } else {
-                  _focusNodes[index].unfocus(); 
+                  _focusNodes[index].unfocus();
                 }
               } else {
                 if (index > 0) {
-                  _focusNodes[index - 1].requestFocus(); 
+                  _focusNodes[index - 1].requestFocus();
                 }
               }
             },
@@ -160,26 +132,14 @@ class _OtpState extends State<Otp> {
   Widget _verifyButton() {
     return SizedBox(
       width: double.infinity,
-      height: 55,
-      child: OutlinedButton(
+      child: ElevatedButton(
         onPressed: () {
           Navigator.push(
             context,
             MaterialPageRoute(builder: (context) => const LoginScreen()),
           );
         },
-        style: OutlinedButton.styleFrom(
-          backgroundColor: const Color(0xFF0A1F44),
-          side: const BorderSide(color: Colors.white24),
-          padding: const EdgeInsets.symmetric(vertical: 14),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(14),
-          ),
-        ),
-        child: Text(
-          "Verify OTP",
-          style: TextStyle(color: Colors.white, fontWeight: FontWeight.w700),
-        ),
+        child: const Text("Verify OTP"),
       ),
     );
   }

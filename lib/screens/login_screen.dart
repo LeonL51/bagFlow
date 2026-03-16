@@ -53,7 +53,7 @@ class _LoginScreenState extends State<LoginScreen> {
             const SizedBox(height: 20),
             Row(
               children: [
-                const Text('Password', style: TextStyle(color: Colors.white)),
+                AuthSectionLabel(text: 'Password'),
                 const Spacer(),
                 _tabButton(
                   title: "Forgot Password?",

@@ -14,6 +14,7 @@ class AppTheme {
 
     scaffoldBackgroundColor: Colors.black,
 
+    // Why use seed
     colorScheme: ColorScheme.fromSeed(
       seedColor: primaryBlue,
       brightness: Brightness.dark,
@@ -68,7 +69,7 @@ class AppTheme {
       style: ElevatedButton.styleFrom(
         backgroundColor: deepBlue,
         foregroundColor: Colors.white,
-        minimumSize: const Size(double.infinity, 50),
+        minimumSize: const Size(double.infinity, 55),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(14),
         ),
