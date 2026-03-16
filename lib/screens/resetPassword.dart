@@ -92,6 +92,7 @@ class _ResetPasswordState extends State<ResetPassword> {
     return TextFormField(
       controller: _passwordController,
       obscureText: _passHidden,
+      style: TextStyle(color: Colors.black),
       decoration: InputDecoration(
         hintText: "**********",
         suffixIcon: IconButton(
@@ -133,6 +134,7 @@ class _ResetPasswordState extends State<ResetPassword> {
     return TextFormField(
       controller: _confirmPasswordController,
       obscureText: _confirmPassHidden,
+      style: TextStyle(color: Colors.black),
       decoration: InputDecoration(
         hintText: "**********",
         suffixIcon: IconButton(

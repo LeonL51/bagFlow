@@ -84,6 +84,7 @@ class _PhoneNumberState extends State<PhoneNumber> {
       dropdownIconPosition: IconPosition.trailing,
       initialCountryCode: 'US',
       disableLengthCheck: true,
+      style: const TextStyle(color: Colors.black),
       decoration: InputDecoration(
         hintText: _fullPhoneNumber.isEmpty ? '917-555-3333' : _fullPhoneNumber,
       ),

@@ -94,7 +94,10 @@ class _OtpState extends State<Otp> {
                 : TextInputAction.next,
             textAlign: TextAlign.center,
             maxLength: 1,
-            style: const TextStyle(fontSize: 20),
+            style: const TextStyle(
+              fontSize: 20,
+              color: Colors.black, 
+            ),
             inputFormatters: [FilteringTextInputFormatter.digitsOnly],
             decoration: InputDecoration(
               counterText: "",
@@ -118,7 +121,7 @@ class _OtpState extends State<Otp> {
                   _focusNodes[index].unfocus();
                 }
               } else {
-                if (index > 0) {
+                if (index > -1) {
                   _focusNodes[index - 1].requestFocus();
                 }
               }
