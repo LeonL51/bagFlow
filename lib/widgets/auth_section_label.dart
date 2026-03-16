@@ -14,7 +14,6 @@ class AuthSectionLabel extends StatelessWidget {
       text,
       style: const TextStyle(
         color: Colors.white,
-        fontWeight: FontWeight.bold,
       ),
     );
   }

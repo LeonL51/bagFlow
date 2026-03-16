@@ -233,8 +233,9 @@ class _LoginScreenState extends State<LoginScreen> {
     return SizedBox(
       width: double.infinity,
       child: ElevatedButton(
+        // Replace this function
         onPressed: _submitLogin,
-        child: const Text("Login"),
+        child: const Text('Login'),
       ),
     );
   }

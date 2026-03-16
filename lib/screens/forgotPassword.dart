@@ -1,8 +1,11 @@
+import 'package:bag_flow/widgets/auth_section_label.dart';
+import 'package:flutter/material.dart';
 import 'package:bag_flow/screens/login_screen.dart';
 import 'package:bag_flow/screens/resetPassword.dart';
 import 'package:bag_flow/screens/signUp_screen.dart';
 import 'package:intl_phone_field/intl_phone_field.dart';
-import 'package:flutter/material.dart';
+import 'package:bag_flow/widgets/auth_scaffold.dart'; 
+
 
 class ForgotPassword extends StatefulWidget {
   const ForgotPassword({super.key});
@@ -22,114 +25,63 @@ class _ForgotPasswordState extends State<ForgotPassword> {
     super.dispose();
   }
 
-  InputDecoration _fieldDecoration({String? hintText}) {
-    return InputDecoration(
-      filled: true,
-      fillColor: const Color(0xFFF6F7F8),
-      hintText: hintText,
-      hintStyle: const TextStyle(color: Color(0xFF9CA3AF)),
-      labelStyle: const TextStyle(color: Color(0xFF6B7280)),
-      border: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(12),
-        borderSide: const BorderSide(color: Color(0xFFE5E7EB)),
-      ),
-      enabledBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(12),
-        borderSide: const BorderSide(color: Color(0xFFE5E7EB)),
-      ),
-      focusedBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(12),
-        borderSide: const BorderSide(color: Color(0xFF2563EB), width: 1.5),
-      ),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: Stack(
-        fit: StackFit.expand,
-        children: [
-          const Image(
-            image: AssetImage('assets/images/welcome_bkgd.jpg'),
-            fit: BoxFit.cover,
-          ),
+    return AuthScaffold(
+      child: Form(
+        key: _formKey,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _backToLoginButton(),
+            const SizedBox(height: 120),
+            _headerSection(),
 
-          Container(
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-                colors: [
-                  Colors.black.withOpacity(.55),
-                  Colors.black.withOpacity(.35),
-                  Colors.black.withOpacity(.55),
-                ],
-              ),
-            ),
-          ),
+            const SizedBox(height: 40),
+            AuthSectionLabel(text: 'Email'), 
 
-          SafeArea(
-            child: Padding(
-              padding: const EdgeInsets.all(24),
-              child: Form(
-                key: _formKey,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    _backToLoginButton(),
-                    const SizedBox(height: 120),
-                    _headerSection(),
+            const SizedBox(height: 5),
+            _emailInput(),
 
-                    const SizedBox(height: 40),
-                    const Text("Email", style: TextStyle(color: Colors.white)),
-                    const SizedBox(height: 5),
-                    _emailInput(),
+            const SizedBox(height: 15),
+            _sendLinkButton(),
 
-                    const SizedBox(height: 15),
-                    _sendLinkButton(),
-
-                    const Spacer(),
-                    _createAccount(),
-                  ],
-                ),
-              ),
-            ),
-          ),
-        ],
+            const Spacer(),
+            _createAccount(),
+          ],
+        ),
       ),
     );
   }
-
 
   Widget _backToLoginButton() {
     return SizedBox(
       width: 55,
-      height: 55, 
+      height: 55,
       child: OutlinedButton(
         style: OutlinedButton.styleFrom(
           backgroundColor: Colors.white.withOpacity(.14),
           side: const BorderSide(color: Colors.white24),
           padding: EdgeInsets.symmetric(vertical: 14),
           shape: RoundedRectangleBorder(
-            borderRadius: (BorderRadius.circular(14))
-          )
-        ), 
+            borderRadius: (BorderRadius.circular(14)),
+          ),
+        ),
         onPressed: () {
-          Navigator.push(context, 
-            MaterialPageRoute(builder: (context) => LoginScreen())
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => LoginScreen()),
           );
-        }, 
+        },
         child: const Icon(
-          Icons.arrow_back_ios_new, 
+          Icons.arrow_back_ios_new,
           color: Colors.white,
           fontWeight: FontWeight.w700,
-          size: 18, 
-        )
-      )
-    ); 
+          size: 18,
+        ),
+      ),
+    );
   }
-
 
   Widget _headerSection() {
     return Column(
@@ -156,27 +108,26 @@ class _ForgotPasswordState extends State<ForgotPassword> {
     return TextFormField(
       controller: _emailController,
       keyboardType: TextInputType.emailAddress,
-      decoration: _fieldDecoration(hintText: 'jeffreyEpstein@gmail.com'),
+      decoration: InputDecoration(
+        hintText: 'hello@example.com',
+        prefixIcon: Icon(
+          Icons.email_outlined
+        ),
+      ),
     );
   }
 
   Widget _sendLinkButton() {
     return SizedBox(
       width: double.infinity,
-      height: 50,
       child: ElevatedButton(
-        style: ElevatedButton.styleFrom(
-          backgroundColor: const Color(0xFF0A1F44),
-        ),
-        // Should send email link
-        // When confirmed, directs to reset password page
         onPressed: () {
           Navigator.push(
             context,
             MaterialPageRoute(builder: (context) => ResetPassword()),
           );
         },
-        child: const Text('Send Link', style: TextStyle(color: Colors.white)),
+        child: const Text('Send Link'),
       ),
     );
   }
