@@ -22,7 +22,7 @@ class AppTheme {
 
     textTheme: const TextTheme(
       headlineLarge: TextStyle(
-        fontSize: 36,
+        fontSize: 42,
         fontWeight: FontWeight.bold,
         color: Color(0xFFE5E7EB),
       ),

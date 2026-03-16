@@ -1,3 +1,4 @@
+import 'package:bag_flow/widgets/auth_header.dart';
 import 'package:flutter/material.dart';
 import 'package:bag_flow/screens/signUp_screen.dart';
 import 'package:bag_flow/screens/login_screen.dart';
@@ -40,16 +41,8 @@ class _SignUpScreenState extends State<SignUpScreen> {
           mainAxisAlignment: MainAxisAlignment.center,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Center(
-              child: const Text(
-                "Create an Account",
-                style: TextStyle(
-                  color: Colors.white,
-                  fontWeight: FontWeight.bold,
-                  fontSize: 34,
-                ),
-              ),
-            ),
+            AuthHeader(
+              title: "Sign Up", subtitle: "Create an account to get started"), 
 
             const SizedBox(height: 40),
             AuthSectionLabel(text: 'Full Name'),

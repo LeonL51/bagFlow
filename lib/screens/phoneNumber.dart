@@ -1,4 +1,5 @@
 import 'package:bag_flow/widgets/auth_divider.dart';
+import 'package:bag_flow/widgets/auth_header.dart';
 import 'package:bag_flow/widgets/auth_section_label.dart';
 import 'package:flutter/material.dart';
 import 'package:intl_phone_field/intl_phone_field.dart';
@@ -34,7 +35,10 @@ class _PhoneNumberState extends State<PhoneNumber> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const SizedBox(height: 100),
-            _headerSection(),
+            AuthHeader(
+              title: 'Login',
+              subtitle: 'Please enter your phone number',
+            ),
 
             const SizedBox(height: 40),
             AuthSectionLabel(text: 'Phone Number'),
@@ -52,28 +56,6 @@ class _PhoneNumberState extends State<PhoneNumber> {
             _backToEmailButton(),
           ],
         ),
-      ),
-    );
-  }
-
-  Widget _headerSection() {
-    return Center(
-      child: Column(
-        children: const [
-          Text(
-            'Login',
-            style: TextStyle(
-              color: Color(0xFFE5E7EB),
-              fontSize: 36,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-          SizedBox(height: 8),
-          Text(
-            'Please enter your phone number',
-            style: TextStyle(color: Color(0xFFE5E7EB), fontSize: 14),
-          ),
-        ],
       ),
     );
   }

@@ -1,4 +1,5 @@
 import 'package:bag_flow/screens/login_screen.dart';
+import 'package:bag_flow/widgets/auth_header.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:bag_flow/widgets/auth_scaffold.dart';
@@ -42,7 +43,10 @@ class _OtpState extends State<Otp> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const SizedBox(height: 140),
-            _headerSection(),
+            AuthHeader(
+              title: 'OTP Verification',
+              subtitle: 'Enter the verification code we just sent to your phone number',
+            ),
 
             const SizedBox(height: 40),
             _otpFields(),
@@ -53,28 +57,6 @@ class _OtpState extends State<Otp> {
             _verifyButton(),
           ],
         ),
-      ),
-    );
-  }
-
-  Widget _headerSection() {
-    return Center(
-      child: Column(
-        children: const [
-          Text(
-            'OTP Verification',
-            style: TextStyle(
-              color: Color(0xFFE5E7EB),
-              fontSize: 36,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-          SizedBox(height: 8),
-          Text(
-            'Enter the verification code we just sent to your phone number',
-            style: TextStyle(color: Color(0xFFE5E7EB), fontSize: 16),
-          ),
-        ],
       ),
     );
   }

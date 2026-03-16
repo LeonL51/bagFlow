@@ -1,10 +1,11 @@
+import 'package:bag_flow/widgets/auth_header.dart';
 import 'package:flutter/material.dart';
 import 'package:bag_flow/screens/forgotPassword.dart';
 import 'package:bag_flow/screens/phoneNumber.dart';
 import 'package:bag_flow/screens/signUp_screen.dart';
 import 'package:bag_flow/widgets/auth_divider.dart';
 import 'package:bag_flow/widgets/auth_scaffold.dart';
-import 'package:bag_flow/widgets/auth_section_label.dart'; 
+import 'package:bag_flow/widgets/auth_section_label.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -43,32 +44,23 @@ class _LoginScreenState extends State<LoginScreen> {
           mainAxisAlignment: MainAxisAlignment.center,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _headerSection(),
+            const AuthHeader(
+              title: "Login",
+              subtitle: "Welcome back to the app",
+            ),
+
             const SizedBox(height: 26),
             _loginMethodTabs(),
+
             const SizedBox(height: 18),
             AuthSectionLabel(text: _useEmail ? 'Email' : 'Phone Number'),
+
             const SizedBox(height: 4),
             _email(),
+
             const SizedBox(height: 20),
-            Row(
-              children: [
-                AuthSectionLabel(text: 'Password'),
-                const Spacer(),
-                _tabButton(
-                  title: "Forgot Password?",
-                  selected: _forgotPassword,
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => const ForgotPassword(),
-                      ),
-                    );
-                  },
-                ),
-              ],
-            ),
+            _passwordOptions(),
+
             const SizedBox(height: 4),
             _password(),
             _keepSignedin(),
@@ -76,27 +68,13 @@ class _LoginScreenState extends State<LoginScreen> {
                 ? const Center(child: CircularProgressIndicator())
                 : _loginButton(),
             const SizedBox(height: 30),
-            const AuthDivider(text: 'or sign in with'), 
+            const AuthDivider(text: 'or sign in with'),
             const SizedBox(height: 30),
             _googleButton(),
             const SizedBox(height: 14),
             _createAccount(),
           ],
         ),
-      ),
-    );
-  }
-
-  Widget _headerSection() {
-    final textTheme = Theme.of(context).textTheme;
-
-    return Center(
-      child: Column(
-        children: [
-          Text('Login', style: textTheme.headlineLarge),
-          const SizedBox(height: 10),
-          Text('Welcome back to the app', style: textTheme.bodyLarge),
-        ],
       ),
     );
   }
@@ -143,6 +121,25 @@ class _LoginScreenState extends State<LoginScreen> {
           decorationThickness: 2,
         ),
       ),
+    );
+  }
+
+  Widget _passwordOptions() {
+    return Row(
+      children: [
+        AuthSectionLabel(text: 'Password'),
+        const Spacer(),
+        _tabButton(
+          title: "Forgot Password?",
+          selected: _forgotPassword,
+          onTap: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => const ForgotPassword()),
+            );
+          },
+        ),
+      ],
     );
   }
 

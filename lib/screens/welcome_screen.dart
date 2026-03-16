@@ -80,7 +80,6 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
             fontWeight: FontWeight.bold
           ),
         ),
-        
       ),
     );
   }

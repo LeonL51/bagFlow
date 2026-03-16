@@ -1,3 +1,4 @@
+import 'package:bag_flow/widgets/auth_header.dart';
 import 'package:bag_flow/widgets/auth_section_label.dart';
 import 'package:flutter/material.dart';
 import 'package:bag_flow/screens/login_screen.dart';
@@ -35,7 +36,11 @@ class _ForgotPasswordState extends State<ForgotPassword> {
           children: [
             _backToLoginButton(),
             const SizedBox(height: 120),
-            _headerSection(),
+            AuthHeader(
+              title: 'Forgot Password?', 
+              subtitle: 'Enter your email address to get the password reset link',
+              alignment: CrossAxisAlignment.start,
+            ),
 
             const SizedBox(height: 40),
             AuthSectionLabel(text: 'Email'), 
@@ -80,27 +85,6 @@ class _ForgotPasswordState extends State<ForgotPassword> {
           size: 18,
         ),
       ),
-    );
-  }
-
-  Widget _headerSection() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: const [
-        Text(
-          'Forgot Password?',
-          style: TextStyle(
-            color: Color(0xFFE5E7EB),
-            fontSize: 36,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-        SizedBox(height: 8),
-        Text(
-          'Enter your email address to get the password reset link',
-          style: TextStyle(color: Color(0xFFE5E7EB), fontSize: 16),
-        ),
-      ],
     );
   }
 
