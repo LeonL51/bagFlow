@@ -1,5 +1,6 @@
 import 'package:bag_flow/widgets/auth_googleContinue.dart';
 import 'package:bag_flow/widgets/auth_header.dart';
+import 'package:bag_flow/widgets/auth_validators.dart';
 import 'package:flutter/material.dart';
 import 'package:bag_flow/screens/signUp_screen.dart';
 import 'package:bag_flow/screens/login_screen.dart';
@@ -123,19 +124,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
         hintText: 'hello@example.com',
         prefixIcon: Icon(Icons.email_outlined),
       ),
-      validator: (value) {
-        final text = value?.trim() ?? "";
-
-        if (text.isEmpty) {
-          return "Please enter your email";
-        }
-
-        if (!text.contains('@') || !text.contains('.')) {
-          return "Please enter a valid email";
-        }
-
-        return null;
-      },
+      validator: (value) => AuthValidators.email(value),
     );
   }
 

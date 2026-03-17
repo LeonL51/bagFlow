@@ -43,16 +43,14 @@ class _OtpState extends State<Otp> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const SizedBox(height: 140),
-            AuthHeader(
+            const AuthHeader(
               title: 'OTP Verification',
-              subtitle: 'Enter the verification code we just sent to your phone number',
+              subtitle:
+                  'Enter the verification code we just sent to your phone number',
+              centered: true,
             ),
-
             const SizedBox(height: 40),
             _otpFields(),
-
-            const SizedBox(height: 15),
-
             const SizedBox(height: 30),
             _verifyButton(),
           ],
@@ -71,16 +69,20 @@ class _OtpState extends State<Otp> {
             controller: _otpControllers[index],
             focusNode: _focusNodes[index],
             keyboardType: TextInputType.number,
-            textInputAction: index == _otpControllers.length - 1
-                ? TextInputAction.done
-                : TextInputAction.next,
+            textInputAction:
+                index == _otpControllers.length - 1
+                    ? TextInputAction.done
+                    : TextInputAction.next,
             textAlign: TextAlign.center,
             maxLength: 1,
             style: const TextStyle(
               fontSize: 20,
-              color: Colors.black, 
+              color: Colors.black,
             ),
-            inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+            inputFormatters: [
+              FilteringTextInputFormatter.digitsOnly,
+              LengthLimitingTextInputFormatter(1),
+            ],
             decoration: InputDecoration(
               counterText: "",
               filled: true,
@@ -93,20 +95,25 @@ class _OtpState extends State<Otp> {
               if (value == null || value.isEmpty) {
                 return '';
               }
+              // Why return null 
               return null;
             },
             onChanged: (value) {
               if (value.isNotEmpty) {
-                if (index < _focusNodes.length - 1) {
+                if (index < _focusNodes.length) {
                   _focusNodes[index + 1].requestFocus();
-                } else {
-                  _focusNodes[index].unfocus();
                 }
               } else {
-                if (index > -1) {
+                if (index > 0) {
                   _focusNodes[index - 1].requestFocus();
                 }
               }
+            },
+            onTap: () {
+              _otpControllers[index].selection = TextSelection(
+                baseOffset: 0,
+                extentOffset: _otpControllers[index].text.length,
+              );
             },
           ),
         );
@@ -118,25 +125,24 @@ class _OtpState extends State<Otp> {
     return SizedBox(
       width: double.infinity,
       child: ElevatedButton(
-        onPressed: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => const LoginScreen()),
-          );
-        },
+        onPressed: _submitOtp,
         child: const Text("Verify OTP"),
       ),
     );
   }
 
-  // Review what this does
-  void _submitLogin() async {
+  void _submitOtp() {
     if (!_formKey.currentState!.validate()) return;
 
-    final username = _otpControllers;
+    final otpCode = _otpControllers.map((controller) => controller.text).join();
 
     ScaffoldMessenger.of(
       context,
-    ).showSnackBar(SnackBar(content: Text("$username is logged in")));
+    ).showSnackBar(SnackBar(content: Text("OTP entered: $otpCode")));
+
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => const LoginScreen()),
+    );
   }
 }

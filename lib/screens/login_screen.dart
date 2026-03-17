@@ -1,5 +1,6 @@
 import 'package:bag_flow/widgets/auth_googleContinue.dart';
 import 'package:bag_flow/widgets/auth_header.dart';
+import 'package:bag_flow/widgets/auth_validators.dart';
 import 'package:flutter/material.dart';
 import 'package:bag_flow/screens/forgotPassword.dart';
 import 'package:bag_flow/screens/phoneNumber.dart';
@@ -160,19 +161,13 @@ class _LoginScreenState extends State<LoginScreen> {
       validator: (value) {
         final text = value?.trim() ?? "";
 
-        if (text.isEmpty) {
-          return _useEmail
-              ? "Please enter your email"
-              : "Please enter your phone number";
-        }
-
         if (_useEmail) {
-          if (!text.contains('@') || !text.contains('.')) {
-            return "Please enter a valid email";
-          }
+          return AuthValidators.email(value);
         } else {
-          final digits = text.replaceAll(RegExp(r'\D'), '');
-          if (digits.length < 10) {
+          final text = value?.trim() ?? "";
+          if (text.isEmpty) return 'Please enter your phone number';
+          final digitsOnly = text.replaceAll(RegExp(r'\D'), '');
+          if (digitsOnly.length < 10) {
             return "Enter a valid phone number";
           }
         }
@@ -194,14 +189,7 @@ class _LoginScreenState extends State<LoginScreen> {
           icon: Icon(_passHidden ? Icons.visibility_off : Icons.visibility),
         ),
       ),
-      validator: (value) {
-        final text = value?.trim() ?? "";
-
-        if (text.isEmpty) {
-          return "Please enter your password";
-        }
-        return null;
-      },
+      validator: AuthValidators.password, 
     );
   }
 

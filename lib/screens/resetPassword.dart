@@ -1,6 +1,7 @@
 import 'package:bag_flow/widgets/auth_divider.dart';
 import 'package:bag_flow/widgets/auth_header.dart';
 import 'package:bag_flow/widgets/auth_section_label.dart';
+import 'package:bag_flow/widgets/auth_validators.dart';
 import 'package:flutter/material.dart';
 import 'package:bag_flow/screens/login_screen.dart';
 import 'package:bag_flow/widgets/auth_scaffold.dart';
@@ -107,30 +108,7 @@ class _ResetPasswordState extends State<ResetPassword> {
           ),
         ),
       ),
-      validator: (value) {
-        final text = value?.trim() ?? "";
-
-        if (text.isEmpty) {
-          return "Please enter your password";
-        }
-        if (text.length < 8) {
-          return "Password must be at least 8 characters";
-        }
-
-        if (!RegExp(r'[A-Z]').hasMatch(text)) {
-          return "Password must contain at least one uppercase letter";
-        }
-
-        if (!RegExp(r'[a-z]').hasMatch(text)) {
-          return "Password must contain at least one lowercase letter";
-        }
-
-        if (!RegExp(r'[!@#$%^&*(),.?":{}|<>_\-\/\[\];+=~`]').hasMatch(text)) {
-          return "Password must contain at least one special character";
-        }
-
-        return null;
-      },
+      validator: AuthValidators.password,
     );
   }
 
