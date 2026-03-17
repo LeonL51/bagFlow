@@ -1,5 +1,6 @@
 import 'package:bag_flow/widgets/auth_googleContinue.dart';
 import 'package:bag_flow/widgets/auth_header.dart';
+import 'package:bag_flow/widgets/auth_password.dart';
 import 'package:bag_flow/widgets/auth_validators.dart';
 import 'package:flutter/material.dart';
 import 'package:bag_flow/screens/signUp_screen.dart';
@@ -30,7 +31,6 @@ class _SignUpScreenState extends State<SignUpScreen> {
     super.dispose();
   }
 
-  bool _passHidden = true;
   bool _useEmail = true;
   bool _isLoading = false;
 
@@ -62,7 +62,9 @@ class _SignUpScreenState extends State<SignUpScreen> {
             AuthSectionLabel(text: 'Password'),
 
             const SizedBox(height: 4),
-            _password(),
+            AuthPassword(
+              controller: _passwordController,
+              validator: AuthValidators.password),
 
             const SizedBox(height: 18),
             _termsOfService(),
@@ -125,49 +127,6 @@ class _SignUpScreenState extends State<SignUpScreen> {
         prefixIcon: Icon(Icons.email_outlined),
       ),
       validator: (value) => AuthValidators.email(value),
-    );
-  }
-
-  Widget _password() {
-    return TextFormField(
-      controller: _passwordController,
-      obscureText: _passHidden,
-      style: const TextStyle(color: Colors.black),
-      decoration: InputDecoration(
-        hintText: '***************',
-        prefixIcon: Icon(Icons.lock_open_outlined),
-        suffixIcon: IconButton(
-          onPressed: () => setState(() => _passHidden = !_passHidden),
-          icon: Icon(
-            _passHidden ? Icons.visibility_off : Icons.visibility,
-            color: const Color(0xFF9CA3AF),
-          ),
-        ),
-      ),
-      validator: (value) {
-        final text = value?.trim() ?? "";
-
-        if (text.isEmpty) {
-          return "Please enter your password";
-        }
-        if (text.length < 8) {
-          return "Password must be at least 8 characters";
-        }
-
-        if (!RegExp(r'[A-Z]').hasMatch(text)) {
-          return "Password must contain at least one uppercase letter";
-        }
-
-        if (!RegExp(r'[a-z]').hasMatch(text)) {
-          return "Password must contain at least one lowercase letter";
-        }
-
-        if (!RegExp(r'[!@#$%^&*(),.?":{}|<>_\-\/\[\];+=~`]').hasMatch(text)) {
-          return "Password must contain at least one special character";
-        }
-
-        return null;
-      },
     );
   }
 

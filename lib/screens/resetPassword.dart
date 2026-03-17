@@ -1,5 +1,6 @@
 import 'package:bag_flow/widgets/auth_divider.dart';
 import 'package:bag_flow/widgets/auth_header.dart';
+import 'package:bag_flow/widgets/auth_password.dart';
 import 'package:bag_flow/widgets/auth_section_label.dart';
 import 'package:bag_flow/widgets/auth_validators.dart';
 import 'package:flutter/material.dart';
@@ -17,7 +18,6 @@ class _ResetPasswordState extends State<ResetPassword> {
   final _formKey = GlobalKey<FormState>();
 
   final _passwordController = TextEditingController();
-
   final _confirmPasswordController = TextEditingController();
 
   @override
@@ -49,13 +49,30 @@ class _ResetPasswordState extends State<ResetPassword> {
             AuthSectionLabel(text: 'Enter new password'), 
 
             const SizedBox(height: 5),
-            _newPassword(),
+            AuthPassword(
+              controller: _passwordController,
+              validator: (value) => AuthValidators.password(value)),
 
             const SizedBox(height: 15),
             AuthSectionLabel(text: 'Re-enter new password'), 
 
             const SizedBox(height: 5),
-            _confirmPassword(),
+            AuthPassword(
+              controller: _confirmPasswordController,
+              validator: (value) {
+                final text = value?.trim() ?? "";
+
+                if (text.isEmpty) {
+                  return "Please re-enter your password";
+                }
+
+                if (text != _passwordController.text) {
+                  return "Password does not match";
+                }
+
+                return null;
+              }
+            ),
 
             const SizedBox(height: 30),
             _resetPasswordButton(),
@@ -70,80 +87,7 @@ class _ResetPasswordState extends State<ResetPassword> {
       ),
     );
   }
-
-  Widget _headerSection() {
-    return Center(
-      child: Column(
-        children: const [
-          Text(
-            'Reset Password',
-            style: TextStyle(
-              color: Color(0xFFE5E7EB),
-              fontSize: 36,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-          SizedBox(height: 8),
-          Text(
-            'Please enter your new password twice below to confirm',
-            style: TextStyle(color: Color(0xFFE5E7EB), fontSize: 16),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _newPassword() {
-    return TextFormField(
-      controller: _passwordController,
-      obscureText: _passHidden,
-      style: TextStyle(color: Colors.black),
-      decoration: InputDecoration(
-        hintText: "**********",
-        suffixIcon: IconButton(
-          onPressed: () => setState(() => _passHidden = !_passHidden),
-          icon: Icon(
-            _passHidden ? Icons.visibility_off : Icons.visibility,
-            color: const Color(0xFF9CA3AF),
-          ),
-        ),
-      ),
-      validator: AuthValidators.password,
-    );
-  }
-
-  Widget _confirmPassword() {
-    return TextFormField(
-      controller: _confirmPasswordController,
-      obscureText: _confirmPassHidden,
-      style: TextStyle(color: Colors.black),
-      decoration: InputDecoration(
-        hintText: "**********",
-        suffixIcon: IconButton(
-          onPressed: () =>
-              setState(() => _confirmPassHidden = !_confirmPassHidden),
-          icon: Icon(
-            _confirmPassHidden ? Icons.visibility_off : Icons.visibility,
-            color: const Color(0xFF9CA3AF),
-          ),
-        ),
-      ),
-      validator: (value) {
-        final text = value?.trim() ?? "";
-
-        if (text.isEmpty) {
-          return "Please re-enter your password";
-        }
-
-        if (text != _passwordController.text) {
-          return "Password does not match";
-        }
-
-        return null;
-      },
-    );
-  }
-
+  
   Widget _resetPasswordButton() {
     return SizedBox(
       width: double.infinity,

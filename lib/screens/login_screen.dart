@@ -8,6 +8,7 @@ import 'package:bag_flow/screens/signUp_screen.dart';
 import 'package:bag_flow/widgets/auth_divider.dart';
 import 'package:bag_flow/widgets/auth_scaffold.dart';
 import 'package:bag_flow/widgets/auth_section_label.dart';
+import 'package:bag_flow/widgets/auth_password.dart'; 
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -64,7 +65,14 @@ class _LoginScreenState extends State<LoginScreen> {
             _passwordOptions(),
 
             const SizedBox(height: 4),
-            _password(),
+            AuthPassword(
+              controller: _passwordController,
+              validator: (value) {
+                final text = value?.trim() ?? "";
+
+                if (text.isEmpty) return 'Please enter your password';
+              },
+            ),
             _keepSignedin(),
             _isLoading
                 ? const Center(child: CircularProgressIndicator())
@@ -173,23 +181,6 @@ class _LoginScreenState extends State<LoginScreen> {
         }
         return null;
       },
-    );
-  }
-
-  Widget _password() {
-    return TextFormField(
-      controller: _passwordController,
-      obscureText: _passHidden,
-      style: const TextStyle(color: Colors.black),
-      decoration: InputDecoration(
-        hintText: "**************",
-        prefixIcon: const Icon(Icons.lock_outline),
-        suffixIcon: IconButton(
-          onPressed: () => setState(() => _passHidden = !_passHidden),
-          icon: Icon(_passHidden ? Icons.visibility_off : Icons.visibility),
-        ),
-      ),
-      validator: AuthValidators.password, 
     );
   }
 
