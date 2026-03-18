@@ -1,9 +1,8 @@
+import 'package:flutter/material.dart';
 import 'package:bag_flow/widgets/auth_googleContinue.dart';
 import 'package:bag_flow/widgets/auth_header.dart';
 import 'package:bag_flow/widgets/auth_password.dart';
 import 'package:bag_flow/widgets/auth_validators.dart';
-import 'package:flutter/material.dart';
-import 'package:bag_flow/screens/signUp_screen.dart';
 import 'package:bag_flow/screens/login_screen.dart';
 import 'package:bag_flow/widgets/auth_section_label.dart';
 import 'package:bag_flow/widgets/auth_scaffold.dart';

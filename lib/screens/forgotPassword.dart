@@ -1,10 +1,9 @@
+import 'package:bag_flow/widgets/auth_createAcctBtn.dart';
 import 'package:bag_flow/widgets/auth_header.dart';
 import 'package:bag_flow/widgets/auth_section_label.dart';
 import 'package:flutter/material.dart';
 import 'package:bag_flow/screens/login_screen.dart';
 import 'package:bag_flow/screens/resetPassword.dart';
-import 'package:bag_flow/screens/signUp_screen.dart';
-import 'package:intl_phone_field/intl_phone_field.dart';
 import 'package:bag_flow/widgets/auth_scaffold.dart'; 
 
 
@@ -52,7 +51,7 @@ class _ForgotPasswordState extends State<ForgotPassword> {
             _sendLinkButton(),
 
             const Spacer(),
-            _createAccount(),
+            AuthCreateAccount(),
           ],
         ),
       ),
@@ -94,7 +93,7 @@ class _ForgotPasswordState extends State<ForgotPassword> {
       keyboardType: TextInputType.emailAddress,
       style: const TextStyle(color: Colors.black),
       decoration: InputDecoration(
-        hintText: 'hello@example.com',
+        hintText: 'name@example.com',
         prefixIcon: Icon(
           Icons.email_outlined
         ),
@@ -113,27 +112,6 @@ class _ForgotPasswordState extends State<ForgotPassword> {
           );
         },
         child: const Text('Send Link'),
-      ),
-    );
-  }
-
-  Widget _createAccount() {
-    return Center(
-      // After wrapped, add a child
-      child: TextButton(
-        onPressed: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => SignUpScreen()),
-          );
-        },
-        child: Text(
-          "Create an account",
-          style: TextStyle(
-            color: Color(0xFF93C5FD),
-            fontWeight: FontWeight.w700,
-          ),
-        ),
       ),
     );
   }

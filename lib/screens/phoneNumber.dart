@@ -1,9 +1,10 @@
+import 'package:bag_flow/widgets/auth_createAcctBtn.dart';
 import 'package:bag_flow/widgets/auth_divider.dart';
+import 'package:bag_flow/widgets/auth_googleContinue.dart';
 import 'package:bag_flow/widgets/auth_header.dart';
 import 'package:bag_flow/widgets/auth_section_label.dart';
 import 'package:flutter/material.dart';
 import 'package:intl_phone_field/intl_phone_field.dart';
-import 'package:bag_flow/screens/login_screen.dart';
 import 'package:bag_flow/screens/Otp.dart';
 import 'package:bag_flow/widgets/auth_scaffold.dart';
 
@@ -53,7 +54,10 @@ class _PhoneNumberState extends State<PhoneNumber> {
             AuthDivider(text: 'or sign in with'),
 
             const SizedBox(height: 15),
-            _backToEmailButton(),
+            AuthGoogleButton(onPressed: () {}),
+
+            const Spacer(),
+            AuthCreateAccount()
           ],
         ),
       ),
@@ -109,42 +113,6 @@ class _PhoneNumberState extends State<PhoneNumber> {
           );
         },
         child: const Text('Get OTP'),
-      ),
-    );
-  }
-
-  Widget _backToEmailButton() {
-    return SizedBox(
-      width: double.infinity,
-      child: OutlinedButton(
-        onPressed: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => const LoginScreen()),
-          );
-        },
-        style: OutlinedButton.styleFrom(
-          backgroundColor: Colors.white.withOpacity(0.14),
-          side: const BorderSide(color: Colors.white24),
-          padding: const EdgeInsets.symmetric(vertical: 14),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(14),
-          ),
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: const [
-            Icon(Icons.g_mobiledata, size: 28, color: Colors.white),
-            SizedBox(width: 10),
-            Text(
-              "Login with email",
-              style: TextStyle(
-                color: Colors.white,
-                fontWeight: FontWeight.w700,
-              ),
-            ),
-          ],
-        ),
       ),
     );
   }

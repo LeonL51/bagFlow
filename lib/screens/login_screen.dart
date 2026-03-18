@@ -1,10 +1,10 @@
+import 'package:bag_flow/widgets/auth_createAcctBtn.dart';
 import 'package:bag_flow/widgets/auth_googleContinue.dart';
 import 'package:bag_flow/widgets/auth_header.dart';
 import 'package:bag_flow/widgets/auth_validators.dart';
 import 'package:flutter/material.dart';
 import 'package:bag_flow/screens/forgotPassword.dart';
 import 'package:bag_flow/screens/phoneNumber.dart';
-import 'package:bag_flow/screens/signUp_screen.dart';
 import 'package:bag_flow/widgets/auth_divider.dart';
 import 'package:bag_flow/widgets/auth_scaffold.dart';
 import 'package:bag_flow/widgets/auth_section_label.dart';
@@ -26,7 +26,6 @@ class _LoginScreenState extends State<LoginScreen> {
 
   bool _useEmail = true;
   bool _isLoading = false;
-  bool _passHidden = true;
   bool _forgotPassword = true;
   bool _keepSignedIn = true;
 
@@ -77,12 +76,15 @@ class _LoginScreenState extends State<LoginScreen> {
             _isLoading
                 ? const Center(child: CircularProgressIndicator())
                 : _loginButton(),
+
             const SizedBox(height: 30),
             const AuthDivider(text: 'or sign in with'),
+
             const SizedBox(height: 30),
             AuthGoogleButton(onPressed: () {}),
+            
             const SizedBox(height: 14),
-            _createAccount(),
+            AuthCreateAccount(), 
           ],
         ),
       ),
@@ -213,25 +215,6 @@ class _LoginScreenState extends State<LoginScreen> {
         // Replace this function
         onPressed: _submitLogin,
         child: const Text('Login'),
-      ),
-    );
-  }
-
-  Widget _createAccount() {
-    return Center(
-      child: TextButton(
-        onPressed: () {
-          Navigator.of(
-            context,
-          ).push(MaterialPageRoute(builder: (_) => const SignUpScreen()));
-        },
-        child: const Text(
-          "Create an account",
-          style: TextStyle(
-            color: Color(0xFF93C5FD),
-            fontWeight: FontWeight.w700,
-          ),
-        ),
       ),
     );
   }
