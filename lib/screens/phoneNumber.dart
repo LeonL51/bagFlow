@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:intl_phone_field/intl_phone_field.dart';
 import 'package:bag_flow/screens/Otp.dart';
 import 'package:bag_flow/widgets/auth_scaffold.dart';
+import 'package:bag_flow/widgets/auth_backToLoginBtn.dart';
 
 class PhoneNumber extends StatefulWidget {
   const PhoneNumber({super.key});
@@ -35,13 +36,14 @@ class _PhoneNumberState extends State<PhoneNumber> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            AuthToLogin(),
             const SizedBox(height: 100),
             AuthHeader(
               title: 'Login',
               subtitle: 'Please enter your phone number',
             ),
 
-            const SizedBox(height: 40),
+            const SizedBox(height: 35),
             AuthSectionLabel(text: 'Phone Number'),
 
             const SizedBox(height: 5),
@@ -57,7 +59,7 @@ class _PhoneNumberState extends State<PhoneNumber> {
             AuthGoogleButton(onPressed: () {}),
 
             const Spacer(),
-            AuthCreateAccount()
+            AuthCreateAccount(),
           ],
         ),
       ),
