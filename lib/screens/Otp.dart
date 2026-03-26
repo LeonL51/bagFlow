@@ -140,11 +140,6 @@ class _OtpState extends State<Otp> {
     setState(() => _isLoading = true);
 
     try {
-      final credential = PhoneAuthProvider.credential(
-        verificationId: widget.verificationId,
-        smsCode: smsCode,
-      );
-
       await _authService.verifyOTP(
         verificationId: widget.verificationId,
         smsCode: smsCode,
