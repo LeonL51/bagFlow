@@ -1,6 +1,7 @@
 import 'package:bag_flow/services/auth_service.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:bag_flow/services/user_service.dart';
 
 // Gives you one place to access AuthService 
 final authServiceProvider = Provider<AuthService>((ref) {
@@ -33,3 +34,18 @@ final otpVerificationLoadingProvider =
 
 final resetPasswordSuccessProvider =
     StateProvider.autoDispose<bool>((ref) => false);
+
+final userServiceProvider = Provider<UserService>((ref) {
+  return UserService();
+});
+
+final userProfileProvider = FutureProvider<Map<String, dynamic>?>((ref) async {
+  final authService = ref.watch(authServiceProvider);
+  final userService = ref.watch(userServiceProvider);
+
+  final user = authService.currentUser;
+  if (user == null) return null;
+
+  final doc = await userService.getUserProfile(user.uid);
+  return doc.data() as Map<String, dynamic>?;
+});

@@ -1,4 +1,5 @@
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 
 class AuthService {
   final FirebaseAuth _auth;
@@ -36,6 +37,7 @@ class AuthService {
   }
 
   Future<void> logout() async {
+    await GoogleSignIn().signOut();
     await _auth.signOut();
   }
 
@@ -66,6 +68,27 @@ class AuthService {
     final credential = PhoneAuthProvider.credential(
       verificationId: verificationId,
       smsCode: smsCode,
+    );
+
+    return await _auth.signInWithCredential(credential);
+  }
+
+  Future<UserCredential> signInWithGoogle() async {
+    final GoogleSignInAccount? googleUser = await GoogleSignIn().signIn();
+
+    if (googleUser == null) {
+      throw FirebaseAuthException(
+        code: 'google-sign-in-cancelled',
+        message: 'Google sign-in was cancelled',
+      );
+    }
+
+    final GoogleSignInAuthentication googleAuth =
+        await googleUser.authentication;
+
+    final credential = GoogleAuthProvider.credential(
+      accessToken: googleAuth.accessToken,
+      idToken: googleAuth.idToken,
     );
 
     return await _auth.signInWithCredential(credential);

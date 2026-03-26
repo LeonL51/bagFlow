@@ -7,14 +7,39 @@ class HomeScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final userProfile = ref.watch(userProfileProvider);
+
     return Scaffold(
-      body: Center(
-        child: ElevatedButton(
-          onPressed: () {
-            ref.read(authServiceProvider).logout();
-          },
-          child: const Text("Logout"),
-        ),
+      body: userProfile.when(
+        data: (data) {
+          if (data == null) {
+            return const Center(child: Text("No user data"));
+          }
+
+          final profile = data as Map<String, dynamic>;
+          final fullName = profile['fullName'] as String? ?? 'User';
+
+          return Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text(
+                  "Welcome, $fullName",
+                  style: const TextStyle(fontSize: 22),
+                ),
+                const SizedBox(height: 20),
+                ElevatedButton(
+                  onPressed: () async {
+                    await ref.read(authServiceProvider).logout();
+                  },
+                  child: const Text("Logout"),
+                ),
+              ],
+            ),
+          );
+        },
+        loading: () => const Center(child: CircularProgressIndicator()),
+        error: (e, _) => Center(child: Text("Error: $e")),
       ),
     );
   }

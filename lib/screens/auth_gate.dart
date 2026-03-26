@@ -4,15 +4,6 @@ import 'package:bag_flow/providers/auth_provider.dart';
 import 'package:bag_flow/screens/login_screen.dart';
 import 'package:bag_flow/screens/home_screen.dart';
 
-class HomeScreen extends StatelessWidget {
-  const HomeScreen({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return const Scaffold(body: Center(child: Text("Logged In")));
-  }
-}
-
 class AuthGate extends ConsumerWidget {
   const AuthGate({super.key});
 

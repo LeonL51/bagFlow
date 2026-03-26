@@ -76,10 +76,11 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 return null;
               },
             ),
-            _keepSignedin(keepSignedIn),
-            isLoading
-                ? const Center(child: CircularProgressIndicator())
-                : _loginButton(),
+            // _keepSignedin(keepSignedIn),
+            // isLoading
+            //     ? const Center(child: CircularProgressIndicator())
+            //     : _loginButton(),
+            AuthGoogleButton(onPressed: _signInWithGoogle),
 
             const SizedBox(height: 30),
             const AuthDivider(text: 'or sign in with'),
@@ -206,44 +207,91 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     );
   }
 
-  Widget _loginButton() {
-    return SizedBox(
-      width: double.infinity,
-      child: ElevatedButton(
-        // Replace this function
-        onPressed: _login,
-        child: const Text('Login'),
-      ),
-    );
-  }
+  // Widget _loginButton() {
+  //   return SizedBox(
+  //     width: double.infinity,
+  //     child: ElevatedButton(
+  //       // Replace this function
+  //       onPressed: _login,
+  //       child: const Text('Login'),
+  //     ),
+  //   );
+  // }
 
-  Future<void> _login() async {
-    if (!_formKey.currentState!.validate()) return;
-
+  Future<void> _signInWithGoogle() async {
     ref.read(loginLoadingProvider.notifier).state = true;
+
     final authService = ref.read(authServiceProvider);
+    final userService = ref.read(userServiceProvider);
 
     try {
-      await authService.loginWithEmail(
-        email: _emailController.text,
-        password: _passwordController.text,
-      );
+      final credential = await authService.signInWithGoogle();
+      final user = credential.user;
+
+      if (user != null) {
+        await userService.createUserProfileIfNotExists(
+          uid: user.uid,
+          fullName: user.displayName ?? 'User',
+          email: user.email ?? '',
+        );
+      }
 
       if (!mounted) return;
 
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text("Login Successful")));
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Google sign-in successful')),
+      );
     } on FirebaseAuthException catch (e) {
       if (!mounted) return;
 
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text(e.message ?? "Login failed")));
-    } finally {
-      if (mounted) {
-        ref.read(loginLoadingProvider.notifier).state = false;
+      if (e.code == 'google-sign-in-cancelled') {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Google sign-in was cancelled')),
+        );
+        return;
       }
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(e.message ?? 'Google sign-in failed')),
+      );
+    } catch (e) {
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Google sign-in failed: $e')),
+      );
+    } finally {
+      ref.read(loginLoadingProvider.notifier).state = false;
     }
   }
+
+  // Future<void> _login() async {
+  //   if (!_formKey.currentState!.validate()) return;
+
+  //   ref.read(loginLoadingProvider.notifier).state = true;
+  //   final authService = ref.read(authServiceProvider);
+
+  //   try {
+  //     await authService.loginWithEmail(
+  //       email: _emailController.text,
+  //       password: _passwordController.text,
+  //     );
+
+  //     if (!mounted) return;
+
+  //     ScaffoldMessenger.of(
+  //       context,
+  //     ).showSnackBar(SnackBar(content: Text("Login Successful")));
+  //   } on FirebaseAuthException catch (e) {
+  //     if (!mounted) return;
+
+  //     ScaffoldMessenger.of(
+  //       context,
+  //     ).showSnackBar(SnackBar(content: Text(e.message ?? "Login failed")));
+  //   } finally {
+  //     if (mounted) {
+  //       ref.read(loginLoadingProvider.notifier).state = false;
+  //     }
+  //   }
+  // }
 }

@@ -1,15 +1,15 @@
 import 'package:bag_flow/providers/auth_provider.dart';
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:bag_flow/screens/login_screen.dart';
+import 'package:bag_flow/widgets/auth_divider.dart';
 import 'package:bag_flow/widgets/auth_googleContinue.dart';
 import 'package:bag_flow/widgets/auth_header.dart';
 import 'package:bag_flow/widgets/auth_password.dart';
-import 'package:bag_flow/widgets/auth_validators.dart';
-import 'package:bag_flow/screens/login_screen.dart';
-import 'package:bag_flow/widgets/auth_section_label.dart';
 import 'package:bag_flow/widgets/auth_scaffold.dart';
-import 'package:bag_flow/widgets/auth_divider.dart';
+import 'package:bag_flow/widgets/auth_section_label.dart';
+import 'package:bag_flow/widgets/auth_validators.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 class SignUpScreen extends ConsumerStatefulWidget {
   const SignUpScreen({super.key});
@@ -44,28 +44,31 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
           mainAxisAlignment: MainAxisAlignment.center,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            AuthHeader(
-              title: "Sign Up", subtitle: "Create an account to get started"), 
+            const AuthHeader(
+              title: "Sign Up",
+              subtitle: "Create an account to get started",
+            ),
 
             const SizedBox(height: 40),
-            AuthSectionLabel(text: 'Full Name'),
+            const AuthSectionLabel(text: 'Full Name'),
 
             const SizedBox(height: 4),
             _fullName(),
 
             const SizedBox(height: 18),
-            AuthSectionLabel(text: 'Email Address'),
+            const AuthSectionLabel(text: 'Email Address'),
 
             const SizedBox(height: 4),
             _email(),
 
             const SizedBox(height: 20),
-            AuthSectionLabel(text: 'Password'),
+            const AuthSectionLabel(text: 'Password'),
 
             const SizedBox(height: 4),
             AuthPassword(
               controller: _passwordController,
-              validator: AuthValidators.password),
+              validator: AuthValidators.password,
+            ),
 
             const SizedBox(height: 18),
             _termsOfService(),
@@ -76,10 +79,10 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
                 : _signUpBtn(),
 
             const SizedBox(height: 20),
-            AuthDivider(text: 'or'),
+            const AuthDivider(text: 'or'),
 
             const SizedBox(height: 20),
-            AuthGoogleButton(onPressed: () {}),
+            AuthGoogleButton(onPressed: _signInWithGoogle),
 
             const SizedBox(height: 14),
             _signIn(),
@@ -94,7 +97,7 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
       controller: _nameController,
       keyboardType: TextInputType.name,
       style: const TextStyle(color: Colors.black),
-      decoration: InputDecoration(
+      decoration: const InputDecoration(
         hintText: 'John Doe',
         prefixIcon: Icon(Icons.person),
       ),
@@ -105,7 +108,7 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
           return "Please enter your full name";
         }
 
-        final parts = text.split(" ");
+        final parts = text.split(RegExp(r'\s+'));
 
         if (parts.length < 2) {
           return "Please enter both first and last name";
@@ -115,7 +118,7 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
           return "Please enter a valid full name";
         }
 
-        return null; 
+        return null;
       },
     );
   }
@@ -125,7 +128,7 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
       controller: _emailController,
       keyboardType: TextInputType.emailAddress,
       style: const TextStyle(color: Colors.black),
-      decoration: InputDecoration(
+      decoration: const InputDecoration(
         hintText: 'hello@example.com',
         prefixIcon: Icon(Icons.email_outlined),
       ),
@@ -168,9 +171,10 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
     return Center(
       child: TextButton(
         onPressed: () {
-          Navigator.of(
+          Navigator.push(
             context,
-          ).push(MaterialPageRoute(builder: (_) => const LoginScreen()));
+            MaterialPageRoute(builder: (_) => const LoginScreen()),
+          );
         },
         child: const Text(
           "Already have an account? Sign in here",
@@ -187,13 +191,27 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
     if (!_formKey.currentState!.validate()) return;
 
     ref.read(signUpLoadingProvider.notifier).state = true;
+
     final authService = ref.read(authServiceProvider);
+    final userService = ref.read(userServiceProvider);
 
     try {
-      await authService.signUpWithEmail(
+      final credential = await authService.signUpWithEmail(
         email: _emailController.text,
         password: _passwordController.text,
       );
+
+      final user = credential.user;
+
+      if (user != null) {
+        await userService.createUserProfile(
+          uid: user.uid,
+          fullName: _nameController.text,
+          email: _emailController.text,
+        );
+
+        await user.updateDisplayName(_nameController.text.trim());
+      }
 
       if (!mounted) return;
 
@@ -206,10 +224,60 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(e.message ?? "Error")),
       );
+    } catch (e) {
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Something went wrong: $e")),
+      );
     } finally {
-      if (mounted) {
-        ref.read(signUpLoadingProvider.notifier).state = false;
+      ref.read(signUpLoadingProvider.notifier).state = false;
+    }
+  }
+
+  Future<void> _signInWithGoogle() async {
+    ref.read(signUpLoadingProvider.notifier).state = true;
+
+    final authService = ref.read(authServiceProvider);
+    final userService = ref.read(userServiceProvider);
+
+    try {
+      final credential = await authService.signInWithGoogle();
+      final user = credential.user;
+
+      if (user != null) {
+        await userService.createUserProfileIfNotExists(
+          uid: user.uid,
+          fullName: user.displayName ?? 'User',
+          email: user.email ?? '',
+        );
       }
+
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Google sign-in successful')),
+      );
+    } on FirebaseAuthException catch (e) {
+      if (!mounted) return;
+
+      if (e.code == 'google-sign-in-cancelled') {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Google sign-in was cancelled')),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(e.message ?? 'Google sign-in failed')),
+        );
+      }
+    } catch (e) {
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Google sign-in failed: $e')),
+      );
+    } finally {
+      ref.read(signUpLoadingProvider.notifier).state = false;
     }
   }
 }
