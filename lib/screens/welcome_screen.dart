@@ -1,31 +1,23 @@
-import 'dart:ui';
 import 'package:bag_flow/widgets/auth_scaffold.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:bag_flow/screens/signUp_screen.dart';
 import 'package:bag_flow/screens/login_screen.dart';
 
-class WelcomeScreen extends StatefulWidget {
+class WelcomeScreen extends ConsumerWidget {
   const WelcomeScreen({super.key});
 
   @override
-  State<WelcomeScreen> createState() => _WelcomeScreenState();
-}
-
-class _WelcomeScreenState extends State<WelcomeScreen> {
-  @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     return AuthScaffold(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-
           _headerSection(),
-
           const SizedBox(height: 28),
-          _loginButton(),
-
+          _loginButton(context),
           const SizedBox(height: 12),
-          _createAccountText()
+          _createAccountText(context),
         ],
       ),
     );
@@ -37,13 +29,13 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
         const Icon(
           Icons.waving_hand,
           size: 160,
-          color: const Color.fromARGB(255, 132, 208, 134),
+          color: Color.fromARGB(255, 132, 208, 134),
         ),
         const SizedBox(height: 40),
         const Text(
           "Welcome to the app",
           textAlign: TextAlign.center,
-          style: const TextStyle(
+          style: TextStyle(
             fontSize: 34,
             fontWeight: FontWeight.bold,
             color: Colors.white,
@@ -56,7 +48,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
           textAlign: TextAlign.center,
           style: TextStyle(
             fontSize: 16,
-            color: Colors.white.withOpacity(0.85),
+            color: Colors.white.withValues(alpha: 0.85),
             height: 1.3,
           ),
         ),
@@ -64,14 +56,14 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
     );
   }
 
-  Widget _loginButton() {
+  Widget _loginButton(BuildContext context) {
     return SizedBox(
       width: 150,
       child: ElevatedButton(
         onPressed: () {
           Navigator.push(
             context,
-            MaterialPageRoute(builder: (context) => LoginScreen()),
+            MaterialPageRoute(builder: (context) => const LoginScreen()),
           );
         },
         child: const Text(
@@ -84,7 +76,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
     );
   }
 
-  Widget _createAccountText() {
+  Widget _createAccountText(BuildContext context) {
     return TextButton(
       onPressed: () {
         Navigator.push(

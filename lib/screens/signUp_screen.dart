@@ -1,6 +1,7 @@
-import 'package:bag_flow/services/auth_service.dart';
+import 'package:bag_flow/providers/auth.provider.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:bag_flow/widgets/auth_googleContinue.dart';
 import 'package:bag_flow/widgets/auth_header.dart';
 import 'package:bag_flow/widgets/auth_password.dart';
@@ -10,16 +11,15 @@ import 'package:bag_flow/widgets/auth_section_label.dart';
 import 'package:bag_flow/widgets/auth_scaffold.dart';
 import 'package:bag_flow/widgets/auth_divider.dart';
 
-class SignUpScreen extends StatefulWidget {
+class SignUpScreen extends ConsumerStatefulWidget {
   const SignUpScreen({super.key});
 
   @override
-  State<SignUpScreen> createState() => _SignUpScreenState();
+  ConsumerState<SignUpScreen> createState() => _SignUpScreenState();
 }
 
-class _SignUpScreenState extends State<SignUpScreen> {
+class _SignUpScreenState extends ConsumerState<SignUpScreen> {
   final _formKey = GlobalKey<FormState>();
-  final AuthService _authService = AuthService();
 
   final _nameController = TextEditingController();
   final _emailController = TextEditingController();
@@ -33,10 +33,10 @@ class _SignUpScreenState extends State<SignUpScreen> {
     super.dispose();
   }
 
-  bool _isLoading = false;
-
   @override
   Widget build(BuildContext context) {
+    final isLoading = ref.watch(signUpLoadingProvider);
+
     return AuthScaffold(
       child: Form(
         key: _formKey,
@@ -71,7 +71,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
             _termsOfService(),
 
             const SizedBox(height: 8),
-            _isLoading
+            isLoading
                 ? const Center(child: CircularProgressIndicator())
                 : _signUpBtn(),
 
@@ -184,31 +184,32 @@ class _SignUpScreenState extends State<SignUpScreen> {
   }
 
   Future<void> _signUp() async {
-    if (!_formKey.currentState!.validate()) return; 
+    if (!_formKey.currentState!.validate()) return;
 
-    setState(() => _isLoading = true); 
+    ref.read(signUpLoadingProvider.notifier).state = true;
+    final authService = ref.read(authServiceProvider);
 
     try {
-      await _authService.signUpWithEmail(
-        email: _emailController.text, 
+      await authService.signUpWithEmail(
+        email: _emailController.text,
         password: _passwordController.text,
       );
 
-      if (!mounted) return; 
+      if (!mounted) return;
 
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text("Account created!")),
       );
     } on FirebaseAuthException catch (e) {
-      if (!mounted) return; 
+      if (!mounted) return;
 
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(e.message ?? "Error"))
-      ); 
+        SnackBar(content: Text(e.message ?? "Error")),
+      );
     } finally {
       if (mounted) {
-        setState(() => _isLoading = false); 
+        ref.read(signUpLoadingProvider.notifier).state = false;
       }
     }
   }
-} 
+}

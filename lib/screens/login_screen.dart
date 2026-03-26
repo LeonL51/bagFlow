@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:bag_flow/widgets/auth_createAcctBtn.dart';
 import 'package:bag_flow/widgets/auth_googleContinue.dart';
 import 'package:bag_flow/widgets/auth_header.dart';
@@ -10,27 +11,21 @@ import 'package:bag_flow/widgets/auth_scaffold.dart';
 import 'package:bag_flow/widgets/auth_section_label.dart';
 import 'package:bag_flow/widgets/auth_password.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:bag_flow/services/auth_service.dart';
+import 'package:bag_flow/providers/auth.provider.dart';
 
-class LoginScreen extends StatefulWidget {
+class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({super.key});
 
   @override
-  State<LoginScreen> createState() => _LoginScreenState();
+  ConsumerState<LoginScreen> createState() => _LoginScreenState();
 }
 
-class _LoginScreenState extends State<LoginScreen> {
+class _LoginScreenState extends ConsumerState<LoginScreen> {
   final _formKey = GlobalKey<FormState>();
-  final AuthService _authService = AuthService();
 
   final _emailController = TextEditingController();
   final _phoneController = TextEditingController();
   final _passwordController = TextEditingController();
-
-  bool _useEmail = true;
-  bool _isLoading = false;
-  bool _forgotPassword = false;
-  bool _keepSignedIn = true;
 
   @override
   void dispose() {
@@ -42,6 +37,10 @@ class _LoginScreenState extends State<LoginScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final useEmail = ref.watch(loginUseEmailProvider);
+    final isLoading = ref.watch(loginLoadingProvider);
+    final keepSignedIn = ref.watch(loginKeepSignedInProvider);
+
     return AuthScaffold(
       child: Form(
         key: _formKey,
@@ -55,13 +54,13 @@ class _LoginScreenState extends State<LoginScreen> {
             ),
 
             const SizedBox(height: 26),
-            _loginMethodTabs(),
+            _loginMethodTabs(useEmail),
 
             const SizedBox(height: 18),
-            AuthSectionLabel(text: _useEmail ? 'Email' : 'Phone Number'),
+            AuthSectionLabel(text: useEmail ? 'Email' : 'Phone Number'),
 
             const SizedBox(height: 4),
-            _email(),
+            _email(useEmail),
 
             const SizedBox(height: 20),
             _passwordOptions(),
@@ -77,8 +76,8 @@ class _LoginScreenState extends State<LoginScreen> {
                 return null;
               },
             ),
-            _keepSignedin(),
-            _isLoading
+            _keepSignedin(keepSignedIn),
+            isLoading
                 ? const Center(child: CircularProgressIndicator())
                 : _loginButton(),
 
@@ -96,19 +95,20 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 
-  Widget _loginMethodTabs() {
+  Widget _loginMethodTabs(bool useEmail) {
     return Row(
       children: [
         _tabButton(
           title: "Email",
-          selected: true,
-          onTap: () => setState(() => _useEmail = true),
+          selected: useEmail,
+          onTap: () => ref.read(loginUseEmailProvider.notifier).state = true,
         ),
         const SizedBox(width: 15),
         _tabButton(
           title: "Phone Number",
-          selected: false,
+          selected: !useEmail,
           onTap: () {
+            ref.read(loginUseEmailProvider.notifier).state = false;
             Navigator.push(
               context,
               MaterialPageRoute(builder: (context) => const PhoneNumber()),
@@ -147,7 +147,7 @@ class _LoginScreenState extends State<LoginScreen> {
         const Spacer(),
         _tabButton(
           title: "Forgot Password?",
-          selected: !_forgotPassword,
+          selected: false,
           onTap: () {
             Navigator.push(
               context,
@@ -159,23 +159,19 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 
-  Widget _email() {
+  Widget _email(bool useEmail) {
     return TextFormField(
-      controller: _useEmail ? _emailController : _phoneController,
-      keyboardType: _useEmail
-          ? TextInputType.emailAddress
-          : TextInputType.phone,
+      controller: useEmail ? _emailController : _phoneController,
+      keyboardType: useEmail ? TextInputType.emailAddress : TextInputType.phone,
       style: const TextStyle(color: Colors.black),
       decoration: InputDecoration(
-        hintText: _useEmail ? 'name@example.com' : '9175553333',
+        hintText: useEmail ? 'name@example.com' : '9175553333',
         prefixIcon: Icon(
-          _useEmail ? Icons.email_outlined : Icons.phone_outlined,
+          useEmail ? Icons.email_outlined : Icons.phone_outlined,
         ),
       ),
       validator: (value) {
-        final text = value?.trim() ?? "";
-
-        if (_useEmail) {
+        if (useEmail) {
           return AuthValidators.email(value);
         } else {
           final text = value?.trim() ?? "";
@@ -190,15 +186,13 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 
-  Widget _keepSignedin() {
+  Widget _keepSignedin(bool keepSignedIn) {
     return Row(
       children: [
         Checkbox(
-          value: _keepSignedIn,
+          value: keepSignedIn,
           onChanged: (value) {
-            setState(() {
-              _keepSignedIn = value!;
-            });
+            ref.read(loginKeepSignedInProvider.notifier).state = value ?? true;
           },
           activeColor: const Color(0xFF2563EB),
           checkColor: Colors.white,
@@ -226,10 +220,11 @@ class _LoginScreenState extends State<LoginScreen> {
   Future<void> _login() async {
     if (!_formKey.currentState!.validate()) return;
 
-    setState(() => _isLoading = true);
+    ref.read(loginLoadingProvider.notifier).state = true;
+    final authService = ref.read(authServiceProvider);
 
     try {
-      await _authService.loginWithEmail(
+      await authService.loginWithEmail(
         email: _emailController.text,
         password: _passwordController.text,
       );
@@ -247,7 +242,7 @@ class _LoginScreenState extends State<LoginScreen> {
       ).showSnackBar(SnackBar(content: Text(e.message ?? "Login failed")));
     } finally {
       if (mounted) {
-        setState(() => _isLoading = false);
+        ref.read(loginLoadingProvider.notifier).state = false;
       }
     }
   }
