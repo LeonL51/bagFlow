@@ -1,5 +1,3 @@
-import 'package:flutter/material.dart';
-
 class AuthValidators {
   static String? email(String? value) {
     final text = value?.trim() ?? '';

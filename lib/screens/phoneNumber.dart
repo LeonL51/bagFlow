@@ -1,5 +1,6 @@
-import 'package:bag_flow/services/auth_service.dart';
+import 'package:bag_flow/providers/auth.provider.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:bag_flow/widgets/auth_createAcctBtn.dart';
 import 'package:bag_flow/widgets/auth_divider.dart';
 import 'package:bag_flow/widgets/auth_googleContinue.dart';
@@ -10,19 +11,16 @@ import 'package:bag_flow/widgets/auth_scaffold.dart';
 import 'package:bag_flow/widgets/auth_backToLoginBtn.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
-class PhoneNumber extends StatefulWidget {
+class PhoneNumber extends ConsumerStatefulWidget {
   const PhoneNumber({super.key});
 
   @override
-  State<PhoneNumber> createState() => _PhoneNumberState();
+  ConsumerState<PhoneNumber> createState() => _PhoneNumberState();
 }
 
-class _PhoneNumberState extends State<PhoneNumber> {
+class _PhoneNumberState extends ConsumerState<PhoneNumber> {
   final _formKey = GlobalKey<FormState>();
   final _phoneController = TextEditingController();
-  final AuthService _authService = AuthService();
-
-  bool _isLoading = false;
 
   @override
   void dispose() {
@@ -46,6 +44,8 @@ class _PhoneNumberState extends State<PhoneNumber> {
 
   @override
   Widget build(BuildContext context) {
+    final isLoading = ref.watch(phoneVerificationLoadingProvider);
+
     return AuthScaffold(
       child: Form(
         key: _formKey,
@@ -63,7 +63,7 @@ class _PhoneNumberState extends State<PhoneNumber> {
             const SizedBox(height: 5),
             _phoneNumber(),
             const SizedBox(height: 15),
-            _getOTP(),
+            _getOTP(isLoading),
             const SizedBox(height: 15),
             const AuthDivider(text: 'or sign in with'),
             const SizedBox(height: 15),
@@ -114,12 +114,12 @@ class _PhoneNumberState extends State<PhoneNumber> {
     );
   }
 
-  Widget _getOTP() {
+  Widget _getOTP(bool isLoading) {
     return SizedBox(
       width: double.infinity,
       child: ElevatedButton(
-        onPressed: _isLoading ? null : _verifyPhone,
-        child: _isLoading
+        onPressed: isLoading ? null : _verifyPhone,
+        child: isLoading
             ? const CircularProgressIndicator()
             : const Text('Get OTP'),
       ),
@@ -132,17 +132,18 @@ class _PhoneNumberState extends State<PhoneNumber> {
     final digitsOnly = _phoneController.text.replaceAll(RegExp(r'\D'), '');
     final phoneNumber = '+1$digitsOnly';
 
-    setState(() => _isLoading = true);
+    ref.read(phoneVerificationLoadingProvider.notifier).state = true;
+    final authService = ref.read(authServiceProvider);
 
     try {
-      await _authService.verifyPhoneNumber(
+      await authService.verifyPhoneNumber(
         phoneNumber: phoneNumber,
         verificationCompleted: (PhoneAuthCredential credential) async {
-          await _authService.signInWithCredential(credential);
+          await authService.signInWithCredential(credential);
 
           if (!mounted) return;
 
-          setState(() => _isLoading = false);
+          ref.read(phoneVerificationLoadingProvider.notifier).state = false;
 
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(content: Text("Phone number verified automatically")),
@@ -151,7 +152,7 @@ class _PhoneNumberState extends State<PhoneNumber> {
         verificationFailed: (FirebaseAuthException e) {
           if (!mounted) return;
 
-          setState(() => _isLoading = false);
+          ref.read(phoneVerificationLoadingProvider.notifier).state = false;
 
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(content: Text(e.message ?? "Phone verification failed")),
@@ -160,7 +161,7 @@ class _PhoneNumberState extends State<PhoneNumber> {
         codeSent: (String verificationId, int? resendToken) {
           if (!mounted) return;
 
-          setState(() => _isLoading = false);
+          ref.read(phoneVerificationLoadingProvider.notifier).state = false;
 
           Navigator.push(
             context,
@@ -172,13 +173,13 @@ class _PhoneNumberState extends State<PhoneNumber> {
         codeAutoRetrievalTimeout: (String verificationId) {
           if (!mounted) return;
 
-          setState(() => _isLoading = false);
+          ref.read(phoneVerificationLoadingProvider.notifier).state = false;
         },
       );
     } catch (e) {
       if (!mounted) return;
 
-      setState(() => _isLoading = false);
+      ref.read(phoneVerificationLoadingProvider.notifier).state = false;
 
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text("Error: $e")),

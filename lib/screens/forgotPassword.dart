@@ -1,22 +1,23 @@
-import 'package:bag_flow/services/auth_service.dart';
+import 'package:bag_flow/providers/auth.provider.dart';
 import 'package:bag_flow/widgets/auth_createAcctBtn.dart';
 import 'package:bag_flow/widgets/auth_header.dart';
 import 'package:bag_flow/widgets/auth_section_label.dart';
+import 'package:bag_flow/widgets/auth_validators.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:bag_flow/screens/login_screen.dart';
 import 'package:bag_flow/widgets/auth_scaffold.dart';
 
-class ForgotPassword extends StatefulWidget {
+class ForgotPassword extends ConsumerStatefulWidget {
   const ForgotPassword({super.key});
 
   @override
-  State<ForgotPassword> createState() => _ForgotPasswordState();
+  ConsumerState<ForgotPassword> createState() => _ForgotPasswordState();
 }
 
-class _ForgotPasswordState extends State<ForgotPassword> {
+class _ForgotPasswordState extends ConsumerState<ForgotPassword> {
   final _formKey = GlobalKey<FormState>();
-  final AuthService _authService = AuthService();
 
   final _emailController = TextEditingController();
 
@@ -28,6 +29,8 @@ class _ForgotPasswordState extends State<ForgotPassword> {
 
   @override
   Widget build(BuildContext context) {
+    final isLoading = ref.watch(forgotPasswordLoadingProvider);
+
     return AuthScaffold(
       child: Form(
         key: _formKey,
@@ -50,7 +53,7 @@ class _ForgotPasswordState extends State<ForgotPassword> {
             _emailInput(),
 
             const SizedBox(height: 15),
-            _sendLinkButton(),
+            _sendLinkButton(isLoading),
 
             const Spacer(),
             AuthCreateAccount(),
@@ -66,7 +69,7 @@ class _ForgotPasswordState extends State<ForgotPassword> {
       height: 55,
       child: OutlinedButton(
         style: OutlinedButton.styleFrom(
-          backgroundColor: Colors.white.withOpacity(.14),
+          backgroundColor: Colors.white.withValues(alpha: 0.14),
           side: const BorderSide(color: Colors.white24),
           padding: EdgeInsets.symmetric(vertical: 14),
           shape: RoundedRectangleBorder(
@@ -76,7 +79,7 @@ class _ForgotPasswordState extends State<ForgotPassword> {
         onPressed: () {
           Navigator.push(
             context,
-            MaterialPageRoute(builder: (context) => LoginScreen()),
+            MaterialPageRoute(builder: (context) => const LoginScreen()),
           );
         },
         child: const Icon(
@@ -98,15 +101,18 @@ class _ForgotPasswordState extends State<ForgotPassword> {
         hintText: 'name@example.com',
         prefixIcon: Icon(Icons.email_outlined),
       ),
+      validator: AuthValidators.email,
     );
   }
 
-  Widget _sendLinkButton() {
+  Widget _sendLinkButton(bool isLoading) {
     return SizedBox(
       width: double.infinity,
       child: ElevatedButton(
-        onPressed: _sendResetEmail, 
-        child: const Text('Send Link'),
+        onPressed: isLoading ? null : _sendResetEmail,
+        child: isLoading
+            ? const CircularProgressIndicator()
+            : const Text('Send Link'),
       ),
     );
   }
@@ -114,18 +120,29 @@ class _ForgotPasswordState extends State<ForgotPassword> {
   Future<void> _sendResetEmail() async {
     if (!_formKey.currentState!.validate()) return;
 
+    ref.read(forgotPasswordLoadingProvider.notifier).state = true;
+    final authService = ref.read(authServiceProvider);
+
     try {
-      await _authService.sendPasswordResetEmail(
+      await authService.sendPasswordResetEmail(
         email: _emailController.text,
       );
+
+      if (!mounted) return;
 
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(SnackBar(content: Text("Reset link sent to your email")));
     } on FirebaseAuthException catch (e) {
+      if (!mounted) return;
+
       ScaffoldMessenger.of(
         context,
-      ).showSnackBar(SnackBar(content: Text("Error sending email")));
+      ).showSnackBar(SnackBar(content: Text(e.message ?? "Error sending email")));
+    } finally {
+      if (mounted) {
+        ref.read(forgotPasswordLoadingProvider.notifier).state = false;
+      }
     }
   }
 }

@@ -1,31 +1,28 @@
-import 'package:bag_flow/services/auth_service.dart';
+import 'package:bag_flow/providers/auth.provider.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:bag_flow/widgets/auth_backToLoginBtn.dart';
 import 'package:bag_flow/widgets/auth_header.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/services.dart';
 import 'package:bag_flow/widgets/auth_scaffold.dart';
 
-class Otp extends StatefulWidget {
+class Otp extends ConsumerStatefulWidget {
   final String verificationId;
 
   const Otp({super.key, required this.verificationId});
 
   @override
-  State<Otp> createState() => _OtpState();
+  ConsumerState<Otp> createState() => _OtpState();
 }
 
-class _OtpState extends State<Otp> {
+class _OtpState extends ConsumerState<Otp> {
   final List<TextEditingController> _otpControllers = List.generate(
     6,
     (_) => TextEditingController(),
   );
 
   final List<FocusNode> _focusNodes = List.generate(6, (_) => FocusNode());
-
-  final AuthService _authService = AuthService();
-
-  bool _isLoading = false;
 
   @override
   void dispose() {
@@ -42,6 +39,8 @@ class _OtpState extends State<Otp> {
 
   @override
   Widget build(BuildContext context) {
+    final isLoading = ref.watch(otpVerificationLoadingProvider);
+
     return AuthScaffold(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -58,7 +57,7 @@ class _OtpState extends State<Otp> {
           const SizedBox(height: 40),
           _otpFields(),
           const SizedBox(height: 30),
-          _verifyButton(),
+          _verifyButton(isLoading),
         ],
       ),
     );
@@ -115,12 +114,12 @@ class _OtpState extends State<Otp> {
     );
   }
 
-  Widget _verifyButton() {
+  Widget _verifyButton(bool isLoading) {
     return SizedBox(
       width: double.infinity,
       child: ElevatedButton(
-        onPressed: _isLoading ? null : _submitOtp,
-        child: _isLoading
+        onPressed: isLoading ? null : _submitOtp,
+        child: isLoading
             ? const CircularProgressIndicator()
             : const Text("Verify OTP"),
       ),
@@ -137,10 +136,11 @@ class _OtpState extends State<Otp> {
       return;
     }
 
-    setState(() => _isLoading = true);
+    ref.read(otpVerificationLoadingProvider.notifier).state = true;
+    final authService = ref.read(authServiceProvider);
 
     try {
-      await _authService.verifyOTP(
+      await authService.verifyOTP(
         verificationId: widget.verificationId,
         smsCode: smsCode,
       );
@@ -158,7 +158,7 @@ class _OtpState extends State<Otp> {
       ).showSnackBar(SnackBar(content: Text(e.message ?? "Invalid OTP")));
     } finally {
       if (mounted) {
-        setState(() => _isLoading = false);
+        ref.read(otpVerificationLoadingProvider.notifier).state = false;
       }
     }
   }
