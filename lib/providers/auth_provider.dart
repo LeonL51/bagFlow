@@ -2,6 +2,7 @@ import 'package:bag_flow/services/auth_service.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:bag_flow/services/user_service.dart';
+import 'package:bag_flow/services/preferences_service.dart';
 
 // Gives you one place to access AuthService 
 final authServiceProvider = Provider<AuthService>((ref) {
@@ -48,4 +49,13 @@ final userProfileProvider = FutureProvider<Map<String, dynamic>?>((ref) async {
 
   final doc = await userService.getUserProfile(user.uid);
   return doc.data() as Map<String, dynamic>?;
+});
+
+final preferencesServiceProvider = Provider<PreferencesService>((ref) {
+  return PreferencesService();
+});
+
+final hasSeenWelcomeProvider = FutureProvider<bool>((ref) async {
+  final prefsService = ref.watch(preferencesServiceProvider);
+  return prefsService.getHasSeenWelcome();
 });

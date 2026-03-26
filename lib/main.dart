@@ -1,4 +1,5 @@
 import 'package:bag_flow/screens/auth_gate.dart';
+import 'package:bag_flow/screens/startup.gate.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -24,7 +25,7 @@ class MyApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       theme: AppTheme.darkTheme,
       // User logs in → Firebase updates auth state → AuthGate rebuilds → HomeScreen
-      home: const AuthGate(),
+      home: const StartupGate(),
     );
   }
 }
