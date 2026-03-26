@@ -47,11 +47,16 @@ class AuthService {
     required Function(String verificationId) codeAutoRetrievalTimeout,
   }) async {
     await _auth.verifyPhoneNumber(
+      phoneNumber: phoneNumber,
       verificationCompleted: verificationCompleted,
       verificationFailed: verificationFailed,
       codeSent: codeSent,
       codeAutoRetrievalTimeout: codeAutoRetrievalTimeout,
     );
+  }
+
+  Future<UserCredential> signInWithCredential(AuthCredential credential) async {
+    return await _auth.signInWithCredential(credential);
   }
 
   Future<UserCredential> verifyOTP({

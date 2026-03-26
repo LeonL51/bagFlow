@@ -1,3 +1,4 @@
+import 'package:bag_flow/services/auth_service.dart';
 import 'package:flutter/material.dart';
 import 'package:bag_flow/widgets/auth_createAcctBtn.dart';
 import 'package:bag_flow/widgets/auth_divider.dart';
@@ -19,6 +20,7 @@ class PhoneNumber extends StatefulWidget {
 class _PhoneNumberState extends State<PhoneNumber> {
   final _formKey = GlobalKey<FormState>();
   final _phoneController = TextEditingController();
+  final AuthService _authService = AuthService();
 
   bool _isLoading = false;
 
@@ -52,18 +54,18 @@ class _PhoneNumberState extends State<PhoneNumber> {
           children: [
             AuthToLogin(),
             const SizedBox(height: 100),
-            AuthHeader(
+            const AuthHeader(
               title: 'Login',
               subtitle: 'Please enter your phone number',
             ),
             const SizedBox(height: 35),
-            AuthSectionLabel(text: 'Phone Number'),
+            const AuthSectionLabel(text: 'Phone Number'),
             const SizedBox(height: 5),
             _phoneNumber(),
             const SizedBox(height: 15),
             _getOTP(),
             const SizedBox(height: 15),
-            AuthDivider(text: 'or sign in with'),
+            const AuthDivider(text: 'or sign in with'),
             const SizedBox(height: 15),
             AuthGoogleButton(onPressed: () {}),
             const Spacer(),
@@ -133,10 +135,10 @@ class _PhoneNumberState extends State<PhoneNumber> {
     setState(() => _isLoading = true);
 
     try {
-      await FirebaseAuth.instance.verifyPhoneNumber(
+      await _authService.verifyPhoneNumber(
         phoneNumber: phoneNumber,
         verificationCompleted: (PhoneAuthCredential credential) async {
-          await FirebaseAuth.instance.signInWithCredential(credential);
+          await _authService.signInWithCredential(credential);
 
           if (!mounted) return;
 

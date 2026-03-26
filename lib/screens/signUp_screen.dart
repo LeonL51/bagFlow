@@ -1,3 +1,4 @@
+import 'package:bag_flow/services/auth_service.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:bag_flow/widgets/auth_googleContinue.dart';
@@ -18,6 +19,7 @@ class SignUpScreen extends StatefulWidget {
 
 class _SignUpScreenState extends State<SignUpScreen> {
   final _formKey = GlobalKey<FormState>();
+  final AuthService _authService = AuthService();
 
   final _nameController = TextEditingController();
   final _emailController = TextEditingController();
@@ -187,9 +189,9 @@ class _SignUpScreenState extends State<SignUpScreen> {
     setState(() => _isLoading = true); 
 
     try {
-      await FirebaseAuth.instance.createUserWithEmailAndPassword(
-        email: _emailController.text.trim(), 
-        password: _passwordController.text.trim(),
+      await _authService.signUpWithEmail(
+        email: _emailController.text, 
+        password: _passwordController.text,
       );
 
       if (!mounted) return; 

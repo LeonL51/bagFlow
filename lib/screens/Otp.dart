@@ -1,3 +1,4 @@
+import 'package:bag_flow/services/auth_service.dart';
 import 'package:flutter/material.dart';
 import 'package:bag_flow/widgets/auth_backToLoginBtn.dart';
 import 'package:bag_flow/widgets/auth_header.dart';
@@ -21,6 +22,8 @@ class _OtpState extends State<Otp> {
   );
 
   final List<FocusNode> _focusNodes = List.generate(6, (_) => FocusNode());
+
+  final AuthService _authService = AuthService();
 
   bool _isLoading = false;
 
@@ -142,7 +145,10 @@ class _OtpState extends State<Otp> {
         smsCode: smsCode,
       );
 
-      await FirebaseAuth.instance.signInWithCredential(credential);
+      await _authService.verifyOTP(
+        verificationId: widget.verificationId,
+        smsCode: smsCode,
+      );
 
       if (!mounted) return;
 

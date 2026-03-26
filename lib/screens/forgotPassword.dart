@@ -1,3 +1,4 @@
+import 'package:bag_flow/services/auth_service.dart';
 import 'package:bag_flow/widgets/auth_createAcctBtn.dart';
 import 'package:bag_flow/widgets/auth_header.dart';
 import 'package:bag_flow/widgets/auth_section_label.dart';
@@ -15,6 +16,7 @@ class ForgotPassword extends StatefulWidget {
 
 class _ForgotPasswordState extends State<ForgotPassword> {
   final _formKey = GlobalKey<FormState>();
+  final AuthService _authService = AuthService();
 
   final _emailController = TextEditingController();
 
@@ -113,8 +115,8 @@ class _ForgotPasswordState extends State<ForgotPassword> {
     if (!_formKey.currentState!.validate()) return;
 
     try {
-      await FirebaseAuth.instance.sendPasswordResetEmail(
-        email: _emailController.text.trim(),
+      await _authService.sendPasswordResetEmail(
+        email: _emailController.text,
       );
 
       ScaffoldMessenger.of(

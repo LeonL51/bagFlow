@@ -10,6 +10,7 @@ import 'package:bag_flow/widgets/auth_scaffold.dart';
 import 'package:bag_flow/widgets/auth_section_label.dart';
 import 'package:bag_flow/widgets/auth_password.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:bag_flow/services/auth_service.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -20,6 +21,7 @@ class LoginScreen extends StatefulWidget {
 
 class _LoginScreenState extends State<LoginScreen> {
   final _formKey = GlobalKey<FormState>();
+  final AuthService _authService = AuthService();
 
   final _emailController = TextEditingController();
   final _phoneController = TextEditingController();
@@ -227,9 +229,9 @@ class _LoginScreenState extends State<LoginScreen> {
     setState(() => _isLoading = true);
 
     try {
-      await FirebaseAuth.instance.signInWithEmailAndPassword(
-        email: _emailController.text.trim(),
-        password: _passwordController.text.trim(),
+      await _authService.loginWithEmail(
+        email: _emailController.text,
+        password: _passwordController.text,
       );
 
       if (!mounted) return;
