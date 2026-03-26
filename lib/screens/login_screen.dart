@@ -1,14 +1,15 @@
+import 'package:flutter/material.dart';
 import 'package:bag_flow/widgets/auth_createAcctBtn.dart';
 import 'package:bag_flow/widgets/auth_googleContinue.dart';
 import 'package:bag_flow/widgets/auth_header.dart';
 import 'package:bag_flow/widgets/auth_validators.dart';
-import 'package:flutter/material.dart';
 import 'package:bag_flow/screens/forgotPassword.dart';
 import 'package:bag_flow/screens/phoneNumber.dart';
 import 'package:bag_flow/widgets/auth_divider.dart';
 import 'package:bag_flow/widgets/auth_scaffold.dart';
 import 'package:bag_flow/widgets/auth_section_label.dart';
-import 'package:bag_flow/widgets/auth_password.dart'; 
+import 'package:bag_flow/widgets/auth_password.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -26,7 +27,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
   bool _useEmail = true;
   bool _isLoading = false;
-  bool _forgotPassword = true;
+  bool _forgotPassword = false;
   bool _keepSignedIn = true;
 
   @override
@@ -70,6 +71,8 @@ class _LoginScreenState extends State<LoginScreen> {
                 final text = value?.trim() ?? "";
 
                 if (text.isEmpty) return 'Please enter your password';
+
+                return null;
               },
             ),
             _keepSignedin(),
@@ -82,9 +85,9 @@ class _LoginScreenState extends State<LoginScreen> {
 
             const SizedBox(height: 30),
             AuthGoogleButton(onPressed: () {}),
-            
+
             const SizedBox(height: 14),
-            AuthCreateAccount(), 
+            AuthCreateAccount(),
           ],
         ),
       ),
@@ -96,15 +99,14 @@ class _LoginScreenState extends State<LoginScreen> {
       children: [
         _tabButton(
           title: "Email",
-          selected: _useEmail,
+          selected: true,
           onTap: () => setState(() => _useEmail = true),
         ),
-        const SizedBox(width: 18),
+        const SizedBox(width: 15),
         _tabButton(
           title: "Phone Number",
-          selected: !_useEmail,
+          selected: false,
           onTap: () {
-            setState(() => _useEmail = false);
             Navigator.push(
               context,
               MaterialPageRoute(builder: (context) => const PhoneNumber()),
@@ -143,7 +145,7 @@ class _LoginScreenState extends State<LoginScreen> {
         const Spacer(),
         _tabButton(
           title: "Forgot Password?",
-          selected: _forgotPassword,
+          selected: !_forgotPassword,
           onTap: () {
             Navigator.push(
               context,
@@ -213,27 +215,38 @@ class _LoginScreenState extends State<LoginScreen> {
       width: double.infinity,
       child: ElevatedButton(
         // Replace this function
-        onPressed: _submitLogin,
+        onPressed: _login,
         child: const Text('Login'),
       ),
     );
   }
 
-  void _submitLogin() async {
+  Future<void> _login() async {
     if (!_formKey.currentState!.validate()) return;
 
     setState(() => _isLoading = true);
 
-    await Future.delayed(const Duration(seconds: 1));
+    try {
+      await FirebaseAuth.instance.signInWithEmailAndPassword(
+        email: _emailController.text.trim(),
+        password: _passwordController.text.trim(),
+      );
 
-    setState(() => _isLoading = false);
+      if (!mounted) return;
 
-    final username = _useEmail
-        ? _emailController.text.trim()
-        : _phoneController.text.trim();
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text("Login Successful")));
+    } on FirebaseAuthException catch (e) {
+      if (!mounted) return;
 
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(SnackBar(content: Text("$username is logged in")));
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(e.message ?? "Login failed")));
+    } finally {
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
+    }
   }
 }

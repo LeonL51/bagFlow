@@ -1,13 +1,13 @@
+import 'package:flutter/material.dart';
 import 'package:bag_flow/widgets/auth_createAcctBtn.dart';
 import 'package:bag_flow/widgets/auth_divider.dart';
 import 'package:bag_flow/widgets/auth_googleContinue.dart';
 import 'package:bag_flow/widgets/auth_header.dart';
 import 'package:bag_flow/widgets/auth_section_label.dart';
-import 'package:flutter/material.dart';
-import 'package:intl_phone_field/intl_phone_field.dart';
 import 'package:bag_flow/screens/Otp.dart';
 import 'package:bag_flow/widgets/auth_scaffold.dart';
 import 'package:bag_flow/widgets/auth_backToLoginBtn.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class PhoneNumber extends StatefulWidget {
   const PhoneNumber({super.key});
@@ -20,12 +20,26 @@ class _PhoneNumberState extends State<PhoneNumber> {
   final _formKey = GlobalKey<FormState>();
   final _phoneController = TextEditingController();
 
-  String _fullPhoneNumber = "";
+  bool _isLoading = false;
 
   @override
   void dispose() {
     _phoneController.dispose();
     super.dispose();
+  }
+
+  String _formatPhoneNumber(String digits) {
+    if (digits.isEmpty) return "";
+
+    if (digits.length <= 3) {
+      return "($digits";
+    } else if (digits.length <= 6) {
+      return "(${digits.substring(0, 3)}) ${digits.substring(3)}";
+    } else {
+      return "(${digits.substring(0, 3)}) "
+          "${digits.substring(3, 6)}-"
+          "${digits.substring(6, digits.length > 10 ? 10 : digits.length)}";
+    }
   }
 
   @override
@@ -42,22 +56,16 @@ class _PhoneNumberState extends State<PhoneNumber> {
               title: 'Login',
               subtitle: 'Please enter your phone number',
             ),
-
             const SizedBox(height: 35),
             AuthSectionLabel(text: 'Phone Number'),
-
             const SizedBox(height: 5),
             _phoneNumber(),
-
             const SizedBox(height: 15),
             _getOTP(),
-
             const SizedBox(height: 15),
             AuthDivider(text: 'or sign in with'),
-
             const SizedBox(height: 15),
             AuthGoogleButton(onPressed: () {}),
-
             const Spacer(),
             AuthCreateAccount(),
           ],
@@ -67,38 +75,39 @@ class _PhoneNumberState extends State<PhoneNumber> {
   }
 
   Widget _phoneNumber() {
-    return IntlPhoneField(
+    return TextFormField(
       controller: _phoneController,
-      dropdownIconPosition: IconPosition.trailing,
-      initialCountryCode: 'US',
-      disableLengthCheck: true,
+      keyboardType: TextInputType.phone,
       style: const TextStyle(color: Colors.black),
-      decoration: InputDecoration(
-        hintText: _fullPhoneNumber.isEmpty ? '917-555-3333' : _fullPhoneNumber,
+      decoration: const InputDecoration(
+        hintText: '(917) 555-3333',
+        prefixIcon: Icon(Icons.phone),
       ),
-      validator: (phone) {
-        final text = phone?.number.trim() ?? "";
+      validator: (value) {
+        final text = value?.trim() ?? "";
 
         if (text.isEmpty) {
           return "Please enter your phone number";
         }
 
-        if (text.length < 10) {
-          return "Please enter only 10 numbers";
+        final digitsOnly = text.replaceAll(RegExp(r'\D'), '');
+
+        if (digitsOnly.length != 10) {
+          return "Enter a valid 10-digit phone number";
         }
 
         return null;
       },
-      onChanged: (phone) {
-        setState(() {
-          _fullPhoneNumber = phone.completeNumber;
-        });
-      },
-      onCountryChanged: (country) {
-        setState(() {
-          _fullPhoneNumber = "";
-          _phoneController.clear();
-        });
+      onChanged: (value) {
+        final digits = value.replaceAll(RegExp(r'\D'), '');
+        final formatted = _formatPhoneNumber(digits);
+
+        if (formatted != value) {
+          _phoneController.value = TextEditingValue(
+            text: formatted,
+            selection: TextSelection.collapsed(offset: formatted.length),
+          );
+        }
       },
     );
   }
@@ -107,26 +116,71 @@ class _PhoneNumberState extends State<PhoneNumber> {
     return SizedBox(
       width: double.infinity,
       child: ElevatedButton(
-        // Add a function to this
-        onPressed: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => Otp()),
-          );
-        },
-        child: const Text('Get OTP'),
+        onPressed: _isLoading ? null : _verifyPhone,
+        child: _isLoading
+            ? const CircularProgressIndicator()
+            : const Text('Get OTP'),
       ),
     );
   }
 
-  // Review what this does
-  void _submitLogin() async {
+  Future<void> _verifyPhone() async {
     if (!_formKey.currentState!.validate()) return;
 
-    final username = _phoneController.text.trim();
+    final digitsOnly = _phoneController.text.replaceAll(RegExp(r'\D'), '');
+    final phoneNumber = '+1$digitsOnly';
 
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(SnackBar(content: Text("$username is logged in")));
+    setState(() => _isLoading = true);
+
+    try {
+      await FirebaseAuth.instance.verifyPhoneNumber(
+        phoneNumber: phoneNumber,
+        verificationCompleted: (PhoneAuthCredential credential) async {
+          await FirebaseAuth.instance.signInWithCredential(credential);
+
+          if (!mounted) return;
+
+          setState(() => _isLoading = false);
+
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text("Phone number verified automatically")),
+          );
+        },
+        verificationFailed: (FirebaseAuthException e) {
+          if (!mounted) return;
+
+          setState(() => _isLoading = false);
+
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(e.message ?? "Phone verification failed")),
+          );
+        },
+        codeSent: (String verificationId, int? resendToken) {
+          if (!mounted) return;
+
+          setState(() => _isLoading = false);
+
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (_) => Otp(verificationId: verificationId),
+            ),
+          );
+        },
+        codeAutoRetrievalTimeout: (String verificationId) {
+          if (!mounted) return;
+
+          setState(() => _isLoading = false);
+        },
+      );
+    } catch (e) {
+      if (!mounted) return;
+
+      setState(() => _isLoading = false);
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Error: $e")),
+      );
+    }
   }
 }

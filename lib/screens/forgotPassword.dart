@@ -1,11 +1,10 @@
 import 'package:bag_flow/widgets/auth_createAcctBtn.dart';
 import 'package:bag_flow/widgets/auth_header.dart';
 import 'package:bag_flow/widgets/auth_section_label.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:bag_flow/screens/login_screen.dart';
-import 'package:bag_flow/screens/resetPassword.dart';
-import 'package:bag_flow/widgets/auth_scaffold.dart'; 
-
+import 'package:bag_flow/widgets/auth_scaffold.dart';
 
 class ForgotPassword extends StatefulWidget {
   const ForgotPassword({super.key});
@@ -36,13 +35,14 @@ class _ForgotPasswordState extends State<ForgotPassword> {
             _backToLoginButton(),
             const SizedBox(height: 120),
             AuthHeader(
-              title: 'Forgot Password?', 
-              subtitle: 'Enter your email address to get the password reset link',
+              title: 'Forgot Password?',
+              subtitle:
+                  'Enter your email address to get the password reset link',
               alignment: CrossAxisAlignment.start,
             ),
 
             const SizedBox(height: 40),
-            AuthSectionLabel(text: 'Email'), 
+            AuthSectionLabel(text: 'Email'),
 
             const SizedBox(height: 5),
             _emailInput(),
@@ -94,9 +94,7 @@ class _ForgotPasswordState extends State<ForgotPassword> {
       style: const TextStyle(color: Colors.black),
       decoration: InputDecoration(
         hintText: 'name@example.com',
-        prefixIcon: Icon(
-          Icons.email_outlined
-        ),
+        prefixIcon: Icon(Icons.email_outlined),
       ),
     );
   }
@@ -105,25 +103,27 @@ class _ForgotPasswordState extends State<ForgotPassword> {
     return SizedBox(
       width: double.infinity,
       child: ElevatedButton(
-        onPressed: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => ResetPassword()),
-          );
-        },
+        onPressed: _sendResetEmail, 
         child: const Text('Send Link'),
       ),
     );
   }
 
-  // Review what this does
-  void _submitLogin() async {
+  Future<void> _sendResetEmail() async {
     if (!_formKey.currentState!.validate()) return;
 
-    final username = _emailController.text.trim();
+    try {
+      await FirebaseAuth.instance.sendPasswordResetEmail(
+        email: _emailController.text.trim(),
+      );
 
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(SnackBar(content: Text("$username is logged in")));
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text("Reset link sent to your email")));
+    } on FirebaseAuthException catch (e) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text("Error sending email")));
+    }
   }
 }

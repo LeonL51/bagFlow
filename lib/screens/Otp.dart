@@ -1,26 +1,28 @@
-import 'package:bag_flow/screens/login_screen.dart';
+import 'package:flutter/material.dart';
 import 'package:bag_flow/widgets/auth_backToLoginBtn.dart';
 import 'package:bag_flow/widgets/auth_header.dart';
-import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/services.dart';
 import 'package:bag_flow/widgets/auth_scaffold.dart';
 
 class Otp extends StatefulWidget {
-  const Otp({super.key});
+  final String verificationId;
+
+  const Otp({super.key, required this.verificationId});
 
   @override
   State<Otp> createState() => _OtpState();
 }
 
 class _OtpState extends State<Otp> {
-  final _formKey = GlobalKey<FormState>();
-
   final List<TextEditingController> _otpControllers = List.generate(
-    5,
+    6,
     (_) => TextEditingController(),
   );
 
-  final List<FocusNode> _focusNodes = List.generate(5, (_) => FocusNode());
+  final List<FocusNode> _focusNodes = List.generate(6, (_) => FocusNode());
+
+  bool _isLoading = false;
 
   @override
   void dispose() {
@@ -38,26 +40,23 @@ class _OtpState extends State<Otp> {
   @override
   Widget build(BuildContext context) {
     return AuthScaffold(
-      child: Form(
-        key: _formKey,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            AuthToLogin(), 
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          AuthToLogin(),
 
-            const SizedBox(height: 120),
-            const AuthHeader(
-              title: 'OTP Verification',
-              subtitle:
-                  'Enter the verification code we just sent to your phone number',
-              centered: true,
-            ),
-            const SizedBox(height: 40),
-            _otpFields(),
-            const SizedBox(height: 30),
-            _verifyButton(),
-          ],
-        ),
+          const SizedBox(height: 100),
+          const AuthHeader(
+            title: 'OTP Verification',
+            subtitle:
+                'Enter the verification code we just sent to your phone number',
+            centered: true,
+          ),
+          const SizedBox(height: 40),
+          _otpFields(),
+          const SizedBox(height: 30),
+          _verifyButton(),
+        ],
       ),
     );
   }
@@ -65,23 +64,19 @@ class _OtpState extends State<Otp> {
   Widget _otpFields() {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: List.generate(5, (index) {
+      children: List.generate(6, (index) {
         return SizedBox(
           width: 60,
           child: TextFormField(
             controller: _otpControllers[index],
             focusNode: _focusNodes[index],
             keyboardType: TextInputType.number,
-            textInputAction:
-                index == _otpControllers.length - 1
-                    ? TextInputAction.done
-                    : TextInputAction.next,
+            textInputAction: index == _otpControllers.length - 1
+                ? TextInputAction.done
+                : TextInputAction.next,
             textAlign: TextAlign.center,
             maxLength: 1,
-            style: const TextStyle(
-              fontSize: 20,
-              color: Colors.black,
-            ),
+            style: const TextStyle(fontSize: 20, color: Colors.black),
             inputFormatters: [
               FilteringTextInputFormatter.digitsOnly,
               LengthLimitingTextInputFormatter(1),
@@ -94,16 +89,9 @@ class _OtpState extends State<Otp> {
                 borderRadius: BorderRadius.circular(10),
               ),
             ),
-            validator: (value) {
-              if (value == null || value.isEmpty) {
-                return '';
-              }
-              // Why return null 
-              return null;
-            },
             onChanged: (value) {
               if (value.isNotEmpty) {
-                if (index < _focusNodes.length) {
+                if (index < _focusNodes.length - 1) {
                   _focusNodes[index + 1].requestFocus();
                 }
               } else {
@@ -128,24 +116,49 @@ class _OtpState extends State<Otp> {
     return SizedBox(
       width: double.infinity,
       child: ElevatedButton(
-        onPressed: _submitOtp,
-        child: const Text("Verify OTP"),
+        onPressed: _isLoading ? null : _submitOtp,
+        child: _isLoading
+            ? const CircularProgressIndicator()
+            : const Text("Verify OTP"),
       ),
     );
   }
 
-  void _submitOtp() {
-    if (!_formKey.currentState!.validate()) return;
+  Future<void> _submitOtp() async {
+    final smsCode = _otpControllers.map((c) => c.text).join();
 
-    final otpCode = _otpControllers.map((controller) => controller.text).join();
+    if (smsCode.length != 6) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Please enter the 6-digit OTP")),
+      );
+      return;
+    }
 
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(SnackBar(content: Text("OTP entered: $otpCode")));
+    setState(() => _isLoading = true);
 
-    Navigator.push(
-      context,
-      MaterialPageRoute(builder: (context) => const LoginScreen()),
-    );
+    try {
+      final credential = PhoneAuthProvider.credential(
+        verificationId: widget.verificationId,
+        smsCode: smsCode,
+      );
+
+      await FirebaseAuth.instance.signInWithCredential(credential);
+
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text("Phone login successful")));
+    } on FirebaseAuthException catch (e) {
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(e.message ?? "Invalid OTP")));
+    } finally {
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
+    }
   }
 }

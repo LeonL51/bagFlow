@@ -1,3 +1,4 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:bag_flow/widgets/auth_googleContinue.dart';
 import 'package:bag_flow/widgets/auth_header.dart';
@@ -30,7 +31,6 @@ class _SignUpScreenState extends State<SignUpScreen> {
     super.dispose();
   }
 
-  bool _useEmail = true;
   bool _isLoading = false;
 
   @override
@@ -71,7 +71,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
             const SizedBox(height: 8),
             _isLoading
                 ? const Center(child: CircularProgressIndicator())
-                : _signUp(),
+                : _signUpBtn(),
 
             const SizedBox(height: 20),
             AuthDivider(text: 'or'),
@@ -112,6 +112,8 @@ class _SignUpScreenState extends State<SignUpScreen> {
         if (RegExp(r'[!@#$%^&*(),.?":{}|<>_\-\/\[\];+=~`]').hasMatch(text)) {
           return "Please enter a valid full name";
         }
+
+        return null; 
       },
     );
   }
@@ -150,29 +152,13 @@ class _SignUpScreenState extends State<SignUpScreen> {
     );
   }
 
-  Widget _signUp() {
+  Widget _signUpBtn() {
     return SizedBox(
       width: double.infinity,
       child: ElevatedButton(
-        onPressed: _submitLogin,
+        onPressed: _signUp,
         child: const Text("Sign Up"),
       ),
-    );
-  }
-
-  Widget _divider() {
-    return Row(
-      children: [
-        Expanded(child: Container(height: 1, color: Colors.white24)),
-        const Padding(
-          padding: EdgeInsets.symmetric(horizontal: 12),
-          child: Text(
-            "or ",
-            style: TextStyle(color: Colors.white70, fontSize: 12),
-          ),
-        ),
-        Expanded(child: Container(height: 1, color: Colors.white24)),
-      ],
     );
   }
 
@@ -195,21 +181,32 @@ class _SignUpScreenState extends State<SignUpScreen> {
     );
   }
 
-  void _submitLogin() async {
-    if (!_formKey.currentState!.validate()) return;
+  Future<void> _signUp() async {
+    if (!_formKey.currentState!.validate()) return; 
 
-    setState(() => _isLoading = true);
+    setState(() => _isLoading = true); 
 
-    await Future.delayed(const Duration(seconds: 1));
+    try {
+      await FirebaseAuth.instance.createUserWithEmailAndPassword(
+        email: _emailController.text.trim(), 
+        password: _passwordController.text.trim(),
+      );
 
-    setState(() => _isLoading = false);
+      if (!mounted) return; 
 
-    final username = _useEmail
-        ? _emailController.text.trim()
-        : _nameController.text.trim();
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Account created!")),
+      );
+    } on FirebaseAuthException catch (e) {
+      if (!mounted) return; 
 
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(SnackBar(content: Text("$username is logged in")));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(e.message ?? "Error"))
+      ); 
+    } finally {
+      if (mounted) {
+        setState(() => _isLoading = false); 
+      }
+    }
   }
-}
+} 

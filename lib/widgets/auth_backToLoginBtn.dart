@@ -13,7 +13,7 @@ class AuthToLogin extends StatelessWidget {
         style: OutlinedButton.styleFrom(
           backgroundColor: Colors.white.withOpacity(.14),
           side: const BorderSide(color: Colors.white24),
-          padding: EdgeInsets.symmetric(vertical: 14),
+          padding: const EdgeInsets.symmetric(vertical: 14),
           shape: RoundedRectangleBorder(
             borderRadius: (BorderRadius.circular(14)),
           ),
@@ -24,7 +24,7 @@ class AuthToLogin extends StatelessWidget {
             MaterialPageRoute(builder: (context) => const LoginScreen()),
           );
         },
-                child: const Icon(
+        child: const Icon(
           Icons.arrow_back_ios_new,
           color: Colors.white,
           fontWeight: FontWeight.w700,
