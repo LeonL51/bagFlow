@@ -1,4 +1,4 @@
-import 'package:bag_flow/providers/auth.provider.dart';
+import 'package:bag_flow/providers/auth_provider.dart';
 import 'package:bag_flow/widgets/auth_divider.dart';
 import 'package:bag_flow/widgets/auth_header.dart';
 import 'package:bag_flow/widgets/auth_password.dart';

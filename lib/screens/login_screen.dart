@@ -11,7 +11,7 @@ import 'package:bag_flow/widgets/auth_scaffold.dart';
 import 'package:bag_flow/widgets/auth_section_label.dart';
 import 'package:bag_flow/widgets/auth_password.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:bag_flow/providers/auth.provider.dart';
+import 'package:bag_flow/providers/auth_provider.dart';
 
 class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({super.key});

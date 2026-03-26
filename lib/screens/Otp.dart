@@ -1,4 +1,4 @@
-import 'package:bag_flow/providers/auth.provider.dart';
+import 'package:bag_flow/providers/auth_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:bag_flow/widgets/auth_backToLoginBtn.dart';
