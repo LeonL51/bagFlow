@@ -1,11 +1,11 @@
 import 'package:bag_flow/providers/auth_provider.dart';
+import 'package:bag_flow/widgets/buttons/backToLogin.dart';
+import 'package:bag_flow/widgets/layouts/header.dart';
+import 'package:bag_flow/widgets/layouts/scaffold.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:bag_flow/widgets/auth_backToLoginBtn.dart';
-import 'package:bag_flow/widgets/auth_header.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/services.dart';
-import 'package:bag_flow/widgets/auth_scaffold.dart';
 
 class Otp extends ConsumerStatefulWidget {
   final String verificationId;
