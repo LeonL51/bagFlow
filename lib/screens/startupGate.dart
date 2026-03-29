@@ -10,13 +10,21 @@ class StartupGate extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final hasSeenWelcome = ref.watch(hasSeenWelcomeProvider);
+    final sessionBootstrap = ref.watch(sessionBootstrapProvider);
 
-    return hasSeenWelcome.when(
-      data: (seen) {
-        if (seen) {
-          return const AuthGate();
-        }
-        return const WelcomeScreen();
+    return sessionBootstrap.when(
+      data: (_) {
+        return hasSeenWelcome.when(
+          data: (seen) {
+            if (seen) {
+              return const AuthGate();
+            }
+            return const WelcomeScreen();
+          },
+          loading: () =>
+              const Scaffold(body: Center(child: CircularProgressIndicator())),
+          error: (e, _) => Scaffold(body: Center(child: Text('Error: $e'))),
+        );
       },
       loading: () =>
           const Scaffold(body: Center(child: CircularProgressIndicator())),

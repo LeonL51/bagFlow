@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:bag_flow/providers/auth_provider.dart';
 import 'package:bag_flow/screens/login_screen.dart';
 import 'package:bag_flow/widgets/auth/password_field.dart';
@@ -8,7 +9,6 @@ import 'package:bag_flow/widgets/layouts/header.dart';
 import 'package:bag_flow/widgets/layouts/scaffold.dart';
 import 'package:bag_flow/widgets/layouts/sectionLabel.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 class SignUpScreen extends ConsumerStatefulWidget {

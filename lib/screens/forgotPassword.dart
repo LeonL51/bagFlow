@@ -132,7 +132,7 @@ class _ForgotPasswordState extends ConsumerState<ForgotPassword> {
 
       ScaffoldMessenger.of(
         context,
-      ).showSnackBar(SnackBar(content: Text("Reset link sent to your email")));
+      ).showSnackBar(SnackBar(content: Text("If an account exists for this email, a reset link has been sent.")));
     } on FirebaseAuthException catch (e) {
       if (!mounted) return;
 

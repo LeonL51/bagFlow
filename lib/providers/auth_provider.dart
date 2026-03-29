@@ -59,3 +59,14 @@ final hasSeenWelcomeProvider = FutureProvider<bool>((ref) async {
   final prefsService = ref.watch(preferencesServiceProvider);
   return prefsService.getHasSeenWelcome();
 });
+
+final sessionBootstrapProvider = FutureProvider<void>((ref) async {
+  final prefsService = ref.watch(preferencesServiceProvider);
+  final authService = ref.watch(authServiceProvider);
+
+  final keepSignedIn = await prefsService.getKeepSignedIn();
+
+  if (!keepSignedIn && authService.currentUser != null) {
+    await authService.logout();
+  }
+});

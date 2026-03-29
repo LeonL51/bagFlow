@@ -68,7 +68,7 @@ class _PhoneNumberState extends ConsumerState<PhoneNumber> {
             const SizedBox(height: 15),
             const AuthDivider(text: 'or sign in with'),
             const SizedBox(height: 15),
-            AuthGoogleButton(onPressed: () {}),
+            AuthGoogleButton(onPressed: _signInWithGoogle),
             const Spacer(),
             AuthCreateAccount(),
           ],
@@ -126,6 +126,53 @@ class _PhoneNumberState extends ConsumerState<PhoneNumber> {
       ),
     );
   }
+  Future<void> _signInWithGoogle() async {
+    ref.read(loginLoadingProvider.notifier).state = true;
+
+    final authService = ref.read(authServiceProvider);
+    final userService = ref.read(userServiceProvider);
+
+    try {
+      final credential = await authService.signInWithGoogle();
+      final user = credential.user;
+
+      if (user != null) {
+        await userService.createUserProfileIfNotExists(
+          uid: user.uid,
+          fullName: user.displayName ?? 'User',
+          email: user.email ?? '',
+        );
+      }
+
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Google sign-in successful')),
+      );
+    } on FirebaseAuthException catch (e) {
+      if (!mounted) return;
+
+      if (e.code == 'google-sign-in-cancelled') {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Google sign-in was cancelled')),
+        );
+        return;
+      }
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(e.message ?? 'Google sign-in failed')),
+      );
+    } catch (e) {
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Google sign-in failed: $e')));
+    } finally {
+      ref.read(loginLoadingProvider.notifier).state = false;
+    }
+  }
+
 
   Future<void> _verifyPhone() async {
     if (!_formKey.currentState!.validate()) return;
@@ -140,15 +187,30 @@ class _PhoneNumberState extends ConsumerState<PhoneNumber> {
       await authService.verifyPhoneNumber(
         phoneNumber: phoneNumber,
         verificationCompleted: (PhoneAuthCredential credential) async {
-          await authService.signInWithCredential(credential);
+          final userService = ref.read(userServiceProvider);
 
-          if (!mounted) return;
+          final result = await authService.signInWithCredential(credential);
+          final user = result.user;
+
+          if (user != null) {
+            await userService.createUserProfileIfNotExists(
+              uid: user.uid,
+              fullName: user.displayName ?? 'User',
+              email: user.email ?? '',
+            );
+          }
 
           ref.read(phoneVerificationLoadingProvider.notifier).state = false;
 
+          if (!mounted) return;
+
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text("Phone number verified automatically")),
+            const SnackBar(
+              content: Text("Phone number verified automatically"),
+            ),
           );
+
+          Navigator.popUntil(context, (route) => route.isFirst); 
         },
         verificationFailed: (FirebaseAuthException e) {
           if (!mounted) return;
@@ -182,9 +244,9 @@ class _PhoneNumberState extends ConsumerState<PhoneNumber> {
 
       ref.read(phoneVerificationLoadingProvider.notifier).state = false;
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Error: $e")),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text("Error: $e")));
     }
   }
 }

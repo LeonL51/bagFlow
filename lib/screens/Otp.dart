@@ -138,18 +138,31 @@ class _OtpState extends ConsumerState<Otp> {
 
     ref.read(otpVerificationLoadingProvider.notifier).state = true;
     final authService = ref.read(authServiceProvider);
+    final userService = ref.read(userServiceProvider);
 
     try {
-      await authService.verifyOTP(
+      final credential = await authService.verifyOTP(
         verificationId: widget.verificationId,
         smsCode: smsCode,
       );
+
+      final user = credential.user;
+
+      if (user != null) {
+        await userService.createUserProfileIfNotExists(
+          uid: user.uid,
+          fullName: user.displayName ?? 'User',
+          email: user.email ?? '',
+        );
+      }
 
       if (!mounted) return;
 
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(const SnackBar(content: Text("Phone login successful")));
+
+      Navigator.popUntil(context, (route) => route.isFirst);
     } on FirebaseAuthException catch (e) {
       if (!mounted) return;
 

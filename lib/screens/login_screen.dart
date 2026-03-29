@@ -76,17 +76,14 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 return null;
               },
             ),
-            // _keepSignedin(keepSignedIn),
-            // isLoading
-            //     ? const Center(child: CircularProgressIndicator())
-            //     : _loginButton(),
-            AuthGoogleButton(onPressed: _signInWithGoogle),
+            _keepSignedin(keepSignedIn),
+            _loginButton(isLoading),
 
             const SizedBox(height: 30),
             const AuthDivider(text: 'or sign in with'),
 
             const SizedBox(height: 30),
-            AuthGoogleButton(onPressed: () {}),
+            AuthGoogleButton(onPressed: _signInWithGoogle),
 
             const SizedBox(height: 14),
             AuthCreateAccount(),
@@ -109,7 +106,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
           title: "Phone Number",
           selected: !useEmail,
           onTap: () {
-            ref.read(loginUseEmailProvider.notifier).state = false;
+            ref.read(loginUseEmailProvider.notifier).state = true;
             Navigator.push(
               context,
               MaterialPageRoute(builder: (context) => const PhoneNumber()),
@@ -192,8 +189,13 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       children: [
         Checkbox(
           value: keepSignedIn,
-          onChanged: (value) {
-            ref.read(loginKeepSignedInProvider.notifier).state = value ?? true;
+          onChanged: (value) async {
+            final newValue = value ?? true;
+
+            ref.read(loginKeepSignedInProvider.notifier).state = newValue;
+            await ref
+                .read(preferencesServiceProvider)
+                .setKeepSignedIn(newValue);
           },
           activeColor: const Color(0xFF2563EB),
           checkColor: Colors.white,
@@ -207,16 +209,22 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     );
   }
 
-  // Widget _loginButton() {
-  //   return SizedBox(
-  //     width: double.infinity,
-  //     child: ElevatedButton(
-  //       // Replace this function
-  //       onPressed: _login,
-  //       child: const Text('Login'),
-  //     ),
-  //   );
-  // }
+  Widget _loginButton(bool isLoading) {
+    return SizedBox(
+      width: double.infinity,
+      child: ElevatedButton(
+        // Replace this function
+        onPressed: isLoading ? null : _login,
+        child: isLoading
+            ? const SizedBox(
+                height: 20,
+                width: 20,
+                child: CircularProgressIndicator(strokeWidth: 2),
+              )
+            : const Text('Login'),
+      ),
+    );
+  }
 
   Future<void> _signInWithGoogle() async {
     ref.read(loginLoadingProvider.notifier).state = true;
@@ -257,41 +265,53 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     } catch (e) {
       if (!mounted) return;
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Google sign-in failed: $e')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Google sign-in failed: $e')));
     } finally {
       ref.read(loginLoadingProvider.notifier).state = false;
     }
   }
 
-  // Future<void> _login() async {
-  //   if (!_formKey.currentState!.validate()) return;
+  Future<void> _login() async {
+    final useEmail = ref.read(loginUseEmailProvider);
 
-  //   ref.read(loginLoadingProvider.notifier).state = true;
-  //   final authService = ref.read(authServiceProvider);
+    if (!useEmail) return;
+    if (!_formKey.currentState!.validate()) return;
 
-  //   try {
-  //     await authService.loginWithEmail(
-  //       email: _emailController.text,
-  //       password: _passwordController.text,
-  //     );
+    final email = _emailController.text.trim();
+    final password = _passwordController.text.trim();
 
-  //     if (!mounted) return;
+    ref.read(loginLoadingProvider.notifier).state = true;
+    final authService = ref.read(authServiceProvider);
 
-  //     ScaffoldMessenger.of(
-  //       context,
-  //     ).showSnackBar(SnackBar(content: Text("Login Successful")));
-  //   } on FirebaseAuthException catch (e) {
-  //     if (!mounted) return;
+    try {
+      await authService.loginWithEmail(email: email, password: password);
 
-  //     ScaffoldMessenger.of(
-  //       context,
-  //     ).showSnackBar(SnackBar(content: Text(e.message ?? "Login failed")));
-  //   } finally {
-  //     if (mounted) {
-  //       ref.read(loginLoadingProvider.notifier).state = false;
-  //     }
-  //   }
-  // }
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text("Login Successful")));
+    } on FirebaseAuthException catch (e) {
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(e.message ?? "Login failed")));
+    } finally {
+      if (mounted) {
+        ref.read(loginLoadingProvider.notifier).state = false;
+      }
+    }
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    Future.microtask(() async {
+      final keepSignedIn = await ref.read(preferencesServiceProvider).getKeepSignedIn();
+      ref.read(loginKeepSignedInProvider.notifier).state = keepSignedIn;
+    });
+  }
 }
