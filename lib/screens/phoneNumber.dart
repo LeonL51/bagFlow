@@ -1,3 +1,7 @@
+import 'dart:io';
+import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:bag_flow/providers/auth_provider.dart';
 import 'package:bag_flow/widgets/buttons/backToLogin.dart';
 import 'package:bag_flow/widgets/buttons/createAccount.dart';
@@ -6,10 +10,8 @@ import 'package:bag_flow/widgets/layouts/divider.dart';
 import 'package:bag_flow/widgets/layouts/header.dart';
 import 'package:bag_flow/widgets/layouts/scaffold.dart';
 import 'package:bag_flow/widgets/layouts/sectionLabel.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:bag_flow/screens/Otp.dart';
-
 import 'package:firebase_auth/firebase_auth.dart';
 
 class PhoneNumber extends ConsumerStatefulWidget {
@@ -126,6 +128,7 @@ class _PhoneNumberState extends ConsumerState<PhoneNumber> {
       ),
     );
   }
+
   Future<void> _signInWithGoogle() async {
     ref.read(loginLoadingProvider.notifier).state = true;
 
@@ -173,7 +176,6 @@ class _PhoneNumberState extends ConsumerState<PhoneNumber> {
     }
   }
 
-
   Future<void> _verifyPhone() async {
     if (!_formKey.currentState!.validate()) return;
 
@@ -182,6 +184,12 @@ class _PhoneNumberState extends ConsumerState<PhoneNumber> {
 
     ref.read(phoneVerificationLoadingProvider.notifier).state = true;
     final authService = ref.read(authServiceProvider);
+
+    if (kDebugMode && Platform.isIOS) {
+      await FirebaseAuth.instance.setSettings(
+        appVerificationDisabledForTesting: true,
+      );
+    }
 
     try {
       await authService.verifyPhoneNumber(

@@ -193,9 +193,13 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
             final newValue = value ?? true;
 
             ref.read(loginKeepSignedInProvider.notifier).state = newValue;
-            await ref
-                .read(preferencesServiceProvider)
-                .setKeepSignedIn(newValue);
+            final prefs = ref.read(preferencesServiceProvider);
+
+            await prefs.setKeepSignedIn(newValue);
+
+            if (!newValue) {
+              await prefs.setSavedEmail('');
+            }
           },
           activeColor: const Color(0xFF2563EB),
           checkColor: Colors.white,
@@ -280,7 +284,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     if (!_formKey.currentState!.validate()) return;
 
     final email = _emailController.text.trim();
-    final password = _passwordController.text.trim();
+    final password = _passwordController.text;
 
     ref.read(loginLoadingProvider.notifier).state = true;
     final authService = ref.read(authServiceProvider);
@@ -288,17 +292,30 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     try {
       await authService.loginWithEmail(email: email, password: password);
 
+      final keepSignedIn = ref.read(loginKeepSignedInProvider);
+
+      if (keepSignedIn) {
+        await ref.read(preferencesServiceProvider).setSavedEmail(email);
+      }
       if (!mounted) return;
 
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(SnackBar(content: Text("Login Successful")));
     } on FirebaseAuthException catch (e) {
-      if (!mounted) return;
+        if (!mounted) return;
 
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text(e.message ?? "Login failed")));
+        String message = 'Login failed';
+
+        if (e.code == 'invalid-email') {
+          message = 'Please enter a valid email address';
+        } else if (e.code == 'user-not-found' || e.code == 'wrong-password' || e.code == 'invalid-credential') {
+          message = 'Invalid email or password';
+        }
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(message)),
+        );
     } finally {
       if (mounted) {
         ref.read(loginLoadingProvider.notifier).state = false;
@@ -309,9 +326,18 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   @override
   void initState() {
     super.initState();
+
     Future.microtask(() async {
-      final keepSignedIn = await ref.read(preferencesServiceProvider).getKeepSignedIn();
+      final prefs = ref.read(preferencesServiceProvider);
+
+      final keepSignedIn = await prefs.getKeepSignedIn();
       ref.read(loginKeepSignedInProvider.notifier).state = keepSignedIn;
+
+      final savedEmail = await prefs.getSavedEmail();
+
+      if (savedEmail != null && keepSignedIn) {
+        _emailController.text = savedEmail;
+      }
     });
   }
 }

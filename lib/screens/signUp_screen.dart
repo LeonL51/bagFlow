@@ -104,18 +104,31 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
       validator: (value) {
         final text = value?.trim() ?? "";
 
+        // Checks if name is not entered 
         if (text.isEmpty) {
           return "Please enter your full name";
         }
 
-        final parts = text.split(RegExp(r'\s+'));
+        // Check for invalid characters
+        if (!RegExp(r"^[a-zA-Z\s'-]+$").hasMatch(text)) {
+          return "Enter a valid name(characters only)";
+        }
+
+        // THEN split into parts
+        final parts = text
+            .split(RegExp(r'\s+'))
+            .where((p) => p.isNotEmpty)
+            .toList();
 
         if (parts.length < 2) {
           return "Please enter both first and last name";
         }
 
-        if (RegExp(r'[!@#$%^&*(),.?":{}|<>_\-\/\[\];+=~`]').hasMatch(text)) {
-          return "Please enter a valid full name";
+        // Enforce each part length
+        for (final part in parts) {
+          if (part.length < 2) {
+            return "Enter both your first and last name";
+          }
         }
 
         return null;
@@ -160,10 +173,7 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
   Widget _signUpBtn() {
     return SizedBox(
       width: double.infinity,
-      child: ElevatedButton(
-        onPressed: _signUp,
-        child: const Text("Sign Up"),
-      ),
+      child: ElevatedButton(onPressed: _signUp, child: const Text("Sign Up")),
     );
   }
 
@@ -215,21 +225,21 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
 
       if (!mounted) return;
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Account created!")),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text("Account created!")));
     } on FirebaseAuthException catch (e) {
       if (!mounted) return;
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(e.message ?? "Error")),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(e.message ?? "Error")));
     } catch (e) {
       if (!mounted) return;
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Something went wrong: $e")),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text("Something went wrong: $e")));
     } finally {
       ref.read(signUpLoadingProvider.notifier).state = false;
     }
@@ -273,9 +283,9 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
     } catch (e) {
       if (!mounted) return;
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Google sign-in failed: $e')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Google sign-in failed: $e')));
     } finally {
       ref.read(signUpLoadingProvider.notifier).state = false;
     }

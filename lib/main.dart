@@ -1,4 +1,3 @@
-import 'package:bag_flow/screens/auth_gate.dart';
 import 'package:bag_flow/screens/startupGate.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
