@@ -12,7 +12,6 @@ import 'package:bag_flow/widgets/layouts/scaffold.dart';
 import 'package:bag_flow/widgets/layouts/sectionLabel.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:bag_flow/screens/Otp.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 
 class PhoneNumber extends ConsumerStatefulWidget {
   const PhoneNumber({super.key});
