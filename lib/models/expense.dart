@@ -31,7 +31,7 @@ class Expense {
     };
   }
 
-  // Build a new object from raw materials 
+  // Transform, validate, and adapt inputs before building
   factory Expense.fromMap(String id, Map<String, dynamic> map) {
     return Expense(
       id: id, 

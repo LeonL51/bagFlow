@@ -217,7 +217,6 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     return SizedBox(
       width: double.infinity,
       child: ElevatedButton(
-        // Replace this function
         onPressed: isLoading ? null : _login,
         child: isLoading
             ? const SizedBox(
@@ -290,7 +289,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     final authService = ref.read(authServiceProvider);
 
     try {
-      await authService.loginWithEmail(email: email, password: password);
+      await authService.signInWithEmail(email: email, password: password);
 
       final keepSignedIn = ref.read(loginKeepSignedInProvider);
 
@@ -310,7 +309,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
         if (e.code == 'invalid-email') {
           message = 'Please enter a valid email address';
         } else if (e.code == 'user-not-found' || e.code == 'wrong-password' || e.code == 'invalid-credential') {
-          message = 'Invalid email or password';
+          message = 'Invalid credentials';
         }
 
         ScaffoldMessenger.of(context).showSnackBar(

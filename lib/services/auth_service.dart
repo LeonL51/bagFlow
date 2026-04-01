@@ -1,15 +1,21 @@
+import 'package:bag_flow/services/user_service.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 
 class AuthService {
+  // Firebase Auth instance
   final FirebaseAuth _auth;
 
+  // If no instance is passed, use a default one
   AuthService({FirebaseAuth? auth}) : _auth = auth ?? FirebaseAuth.instance;
 
+  // Stream emits values over time like a live feed/subscription whenever something changes
+  // In this case, if user is logged-in or not
   Stream<User?> authStateChanges() {
     return _auth.authStateChanges();
   }
 
+  // If someone is logged in, you get a User; otherwise, null
   User? get currentUser => _auth.currentUser;
 
   Future<UserCredential> signUpWithEmail({
@@ -22,7 +28,7 @@ class AuthService {
     );
   }
 
-  Future<UserCredential> loginWithEmail({
+  Future<UserCredential> signInWithEmail({
     required String email,
     required String password,
   }) async {
@@ -36,9 +42,10 @@ class AuthService {
     await _auth.sendPasswordResetEmail(email: email.trim());
   }
 
-  Future<void> logout() async {
+  // Logs out of both features 
+  Future<void> signOut() async {
     await GoogleSignIn().signOut();
-    await _auth.signOut();
+    await _auth.signOut(); 
   }
 
   Future<void> verifyPhoneNumber({
@@ -57,6 +64,7 @@ class AuthService {
     );
   }
 
+  // Proof of identity 
   Future<UserCredential> signInWithCredential(AuthCredential credential) async {
     return await _auth.signInWithCredential(credential);
   }
@@ -74,6 +82,7 @@ class AuthService {
   }
 
   Future<UserCredential> signInWithGoogle() async {
+    // A GoogleSignInAccount exists if successful
     final GoogleSignInAccount? googleUser = await GoogleSignIn().signIn();
 
     if (googleUser == null) {
@@ -83,6 +92,7 @@ class AuthService {
       );
     }
 
+    // Get the authentication tokens from the Google account the user picked 
     final GoogleSignInAuthentication googleAuth =
         await googleUser.authentication;
 

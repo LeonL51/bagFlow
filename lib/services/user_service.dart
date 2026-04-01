@@ -4,13 +4,15 @@ class UserService {
   final FirebaseFirestore _firestore;
 
   UserService({FirebaseFirestore? firestore})
-    : _firestore = firestore ?? FirebaseFirestore.instance;
+    : _firestore = firestore 
+    ?? FirebaseFirestore.instance;
 
   Future<void> createUserProfile({
     required String uid,
     required String fullName,
     required String email,
   }) async {
+    // Save user data 
     await _firestore.collection('users').doc(uid).set({
       'uid': uid,
       'fullName': fullName.trim(),
@@ -19,6 +21,7 @@ class UserService {
     });
   }
 
+  // Fetches user from Firestore 
   Future<DocumentSnapshot<Map<String, dynamic>>> getUserProfile(String uid) async {
     return await _firestore.collection('users').doc(uid).get();
   }
@@ -31,6 +34,7 @@ class UserService {
     final docRef = _firestore.collection('users').doc(uid);
     final doc = await docRef.get();
 
+    // If there is no user profile, create one 
     if (!doc.exists) {
       await docRef.set({
         'uid': uid,

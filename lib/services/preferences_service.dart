@@ -6,11 +6,13 @@ class PreferencesService {
 
   static const _savedEmailKey = 'saved_email';
 
+  // SharedPreferences allow access to local device storage(simple key-value storage)
   Future<void> setSavedEmail(String email) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString(_savedEmailKey, email);
   }
 
+  // Retrieves stored email 
   Future<String?> getSavedEmail() async {
     final prefs = await SharedPreferences.getInstance();
     return prefs.getString(_savedEmailKey);
@@ -30,7 +32,7 @@ class PreferencesService {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool(_hasSeenWelcomeKey, value);
   }
-
+  
   Future<bool> getHasSeenWelcome() async {
     final prefs = await SharedPreferences.getInstance();
     return prefs.getBool(_hasSeenWelcomeKey) ?? false;

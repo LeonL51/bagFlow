@@ -4,20 +4,21 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:bag_flow/services/user_service.dart';
 import 'package:bag_flow/services/preferences_service.dart';
 
-// Gives you one place to access AuthService 
 final authServiceProvider = Provider<AuthService>((ref) {
   return AuthService();
 });
 
-// Listens to Firebase auth state 
-// Later powers AuthGate 
+// Gives real-time authentication state updates 
+// Listen to logins and log outs and update immediately when changed 
 final authStateProvider = StreamProvider<User?>((ref) {
+  // Gets AuthService from other provider 
   final authService = ref.watch(authServiceProvider);
   return authService.authStateChanges();
 });
 
+// Using email to login is set as default 
 final loginUseEmailProvider = StateProvider.autoDispose<bool>((ref) => true);
-
+// login
 final loginKeepSignedInProvider = StateProvider.autoDispose<bool>((ref) => true);
 
 final loginLoadingProvider = StateProvider.autoDispose<bool>((ref) => false);
@@ -67,6 +68,6 @@ final sessionBootstrapProvider = FutureProvider<void>((ref) async {
   final keepSignedIn = await prefsService.getKeepSignedIn();
 
   if (!keepSignedIn && authService.currentUser != null) {
-    await authService.logout();
+    await authService.signOut();
   }
 });

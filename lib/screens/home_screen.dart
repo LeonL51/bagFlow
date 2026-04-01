@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:bag_flow/providers/auth_provider.dart';
+import 'package:bag_flow/screens/add_expense_screen.dart';
 
 class HomeScreen extends ConsumerWidget {
   const HomeScreen({super.key});
@@ -30,8 +31,18 @@ class HomeScreen extends ConsumerWidget {
                 const SizedBox(height: 20),
                 ElevatedButton(
                   onPressed: () async {
-                    await ref.read(authServiceProvider).logout();
+                    await ref.read(authServiceProvider).signOut();
                   },
+
+                  ElevatedButton(
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (_) => const AddExpenseScreen()),
+                      );
+                    },
+                    child: const Text("Add Expense"),
+                  ),
                   child: const Text("Logout"),
                 ),
               ],
@@ -44,3 +55,4 @@ class HomeScreen extends ConsumerWidget {
     );
   }
 }
+
