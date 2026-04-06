@@ -15,4 +15,18 @@ class ExpenseService {
       .collection('expenses')
       .add(expense.toMap());
   }
+
+  Stream<List<Expense>> streamExpenses(String userId) {
+    return _firestore
+      .collection('users')
+      .doc(userId)
+      .collection('expenses')
+      .orderBy('date', descending: true)
+      .snapshots()
+      .map((snapshot) {
+        return snapshot.docs
+          .map((doc) => Expense.frommap(doc.id, doc.data()))
+          .toList(); 
+      }); 
+  }
 }

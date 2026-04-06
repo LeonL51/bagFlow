@@ -12,6 +12,8 @@ import 'package:bag_flow/screens/forgotPassword.dart';
 import 'package:bag_flow/screens/phoneNumber.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:bag_flow/providers/auth_provider.dart';
+import 'package:bag_flow/screens/home_screen.dart';
+
 
 class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({super.key});
@@ -107,7 +109,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
           selected: !useEmail,
           onTap: () {
             ref.read(loginUseEmailProvider.notifier).state = true;
-            Navigator.push(
+            Navigator.pushReplacement(
               context,
               MaterialPageRoute(builder: (context) => const PhoneNumber()),
             );
@@ -206,7 +208,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
         ),
         const SizedBox(width: 2),
         const Text(
-          "Keep me signed in",
+          "Remember me",
           style: TextStyle(color: Colors.white, fontSize: 14),
         ),
       ],
@@ -301,6 +303,12 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(SnackBar(content: Text("Login Successful")));
+
+      Navigator.push(
+        context, 
+        MaterialPageRoute(builder: (context) => HomeScreen()
+        )
+      );
     } on FirebaseAuthException catch (e) {
         if (!mounted) return;
 

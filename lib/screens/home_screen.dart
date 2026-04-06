@@ -1,16 +1,42 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:bag_flow/providers/auth_provider.dart';
-import 'package:bag_flow/screens/add_expense_screen.dart';
+import 'package:bag_flow/widgets/layouts/fixed_appBar.dart';
+import 'package:bag_flow/screens/login_screen.dart';
+import 'package:bag_flow/widgets/layouts/fixed_bottomNavBar.dart'; // adjust path
 
-class HomeScreen extends ConsumerWidget {
+class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends ConsumerState<HomeScreen> {
+  int _currentIndex = 0;
+
+  void _onTabTapped(int index) {
+    setState(() {
+      _currentIndex = index;
+    });
+
+    // Optional: handle navigation here
+    // Example:
+    // if (index == 1) Navigator.pushNamed(context, '/spending');
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final userProfile = ref.watch(userProfileProvider);
 
     return Scaffold(
+      extendBodyBehindAppBar: true,
+      appBar: GradientAppBar(
+        title: 'Home',
+        onMenuTap: () {
+          Scaffold.of(context).openEndDrawer();
+        },
+      ),
       body: userProfile.when(
         data: (data) {
           if (data == null) {
@@ -32,17 +58,17 @@ class HomeScreen extends ConsumerWidget {
                 ElevatedButton(
                   onPressed: () async {
                     await ref.read(authServiceProvider).signOut();
-                  },
 
-                  ElevatedButton(
-                    onPressed: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (_) => const AddExpenseScreen()),
+                    if (context.mounted) {
+                      Navigator.of(context, rootNavigator: true)
+                          .pushAndRemoveUntil(
+                        MaterialPageRoute(
+                          builder: (context) => const LoginScreen(),
+                        ),
+                        (route) => false,
                       );
-                    },
-                    child: const Text("Add Expense"),
-                  ),
+                    }
+                  },
                   child: const Text("Logout"),
                 ),
               ],
@@ -52,7 +78,10 @@ class HomeScreen extends ConsumerWidget {
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (e, _) => Center(child: Text("Error: $e")),
       ),
+      bottomNavigationBar: BottomNavBar(
+        currentIndex: _currentIndex,
+        onTap: _onTabTapped,
+      ),
     );
   }
 }
-

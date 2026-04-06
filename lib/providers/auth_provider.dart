@@ -14,7 +14,7 @@ final authStateProvider = StreamProvider<User?>((ref) {
   // Gets AuthService from other provider 
   final authService = ref.watch(authServiceProvider);
   return authService.authStateChanges();
-});
+}); 
 
 // Using email to login is set as default 
 final loginUseEmailProvider = StateProvider.autoDispose<bool>((ref) => true);
@@ -39,11 +39,11 @@ final resetPasswordSuccessProvider =
 
 final userServiceProvider = Provider<UserService>((ref) {
   return UserService();
-});
+});  
 
 final userProfileProvider = FutureProvider<Map<String, dynamic>?>((ref) async {
-  final authService = ref.watch(authServiceProvider);
-  final userService = ref.watch(userServiceProvider);
+  final authService = ref.watch(authServiceProvider); 
+  final userService = ref.watch(userServiceProvider); 
 
   final user = authService.currentUser;
   if (user == null) return null;

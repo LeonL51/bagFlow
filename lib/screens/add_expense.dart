@@ -7,6 +7,7 @@ import 'package:bag_flow/providers/expense_provider.dart';
 class AddExpenseScreen extends ConsumerStatefulWidget {
     const AddExpenseScreen{(super.key)};
 
+    @override
     ConsumerState<AddExpenseScreen> createState() => _AddExpenseScreenState(); 
 }
 
@@ -14,6 +15,23 @@ class _AddExpenseScreenState extends ConsumerState<AddExpenseScreen> {
     final _formKey = GlobalKey<FormState>();
     final _titleController = TextEditingController();
     final _amountController = TextEditingController(); 
+
+    Widget build(BuildContext context) {
+        return Scaffold(
+            appBar: AppBar(
+                title: const Text('Add Expense'),
+            ),
+            body: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Form(
+                    key: _formKey,
+                    child: Column(
+                    
+                    )
+                )
+            )
+        )
+    }
 }
 
 
