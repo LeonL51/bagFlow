@@ -8,12 +8,11 @@ import 'package:bag_flow/widgets/layouts/scaffold.dart';
 import 'package:bag_flow/widgets/layouts/sectionLabel.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:bag_flow/screens/forgotPassword.dart';
-import 'package:bag_flow/screens/phoneNumber.dart';
+import 'package:bag_flow/screens/credentials/forgotPassword.dart';
+import 'package:bag_flow/screens/credentials/phoneNumber.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:bag_flow/providers/auth_provider.dart';
-import 'package:bag_flow/screens/home_screen.dart';
-
+import 'package:bag_flow/screens/navBar/home_screen.dart';
 
 class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({super.key});
@@ -306,7 +305,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
       Navigator.push(
         context, 
-        MaterialPageRoute(builder: (context) => HomeScreen()
+        MaterialPageRoute(builder: (context) => const HomeScreen()
         )
       );
     } on FirebaseAuthException catch (e) {

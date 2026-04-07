@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart'; 
-import 'package:bag_flow/screens/signUp_screen.dart'; 
+import 'package:bag_flow/screens/credentials/signUp_screen.dart'; 
 
 class AuthCreateAccount extends StatelessWidget {
   const AuthCreateAccount({super.key});

@@ -2,8 +2,8 @@ import 'package:bag_flow/providers/auth_provider.dart';
 import 'package:bag_flow/widgets/layouts/scaffold.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:bag_flow/screens/signUp_screen.dart';
-import 'package:bag_flow/screens/login_screen.dart';
+import 'package:bag_flow/screens/credentials/signUp_screen.dart';
+import 'package:bag_flow/screens/credentials/login_screen.dart';
 
 class WelcomeScreen extends ConsumerWidget {
   const WelcomeScreen({super.key});

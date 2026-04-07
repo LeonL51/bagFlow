@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:bag_flow/providers/auth_provider.dart';
-import 'package:bag_flow/screens/login_screen.dart';
+import 'package:bag_flow/screens/credentials/login_screen.dart';
 import 'package:bag_flow/widgets/auth/password_field.dart';
 import 'package:bag_flow/widgets/auth/validators.dart';
 import 'package:bag_flow/widgets/buttons/googleContinue.dart';

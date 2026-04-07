@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:bag_flow/screens/login_screen.dart'; 
+import 'package:bag_flow/screens/credentials/login_screen.dart'; 
 
 class AuthToLogin extends StatelessWidget {
   const AuthToLogin({super.key});
