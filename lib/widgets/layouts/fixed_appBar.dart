@@ -17,36 +17,42 @@ class GradientAppBar extends StatelessWidget implements PreferredSizeWidget {
   @override
   Widget build(BuildContext context) {
     return AppBar(
+      // Shadow control 
       elevation: 0,
+      scrolledUnderElevation: 0,
       backgroundColor: Colors.transparent,
-      automaticallyImplyLeading: false,
-      toolbarHeight: 60,
-      flexibleSpace: Container(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [
-              Colors.white,
-              Color.fromARGB(150, 255, 255, 255),
-              Color.fromARGB(0, 255, 255, 255),
-            ],
+      shadowColor: Colors.transparent,
+      surfaceTintColor: Colors.transparent,
+      forceMaterialTransparency: true,
+      // Built-in go back button 
+      automaticallyImplyLeading: true,
+      toolbarHeight: 90,
+      flexibleSpace: IgnorePointer(
+        child: Container(
+          decoration: const BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+              stops: [0.0, 0.45, 1.0],
+              colors: [
+                Color(0xF2FFFFFF),
+                Color(0x99FFFFFF),
+                Color(0x00FFFFFF),
+              ],
+            ),
           ),
         ),
       ),
       title: Row(
         children: [
-          // Gesture makes avatar clickable 
           GestureDetector(
             onTap: onProfileTap,
+            // Profile Image 
             child: CircleAvatar(
               radius: 20,
-              backgroundColor: Colors.grey.shade300,
-              backgroundImage: 
-              profileImagePath != null
-                  ? AssetImage(profileImagePath!)
-                  : null,
-              // If user does not have an image, Icons.person is set as defauly
+              backgroundColor: Colors.white24,
+              backgroundImage:
+                  profileImagePath != null ? AssetImage(profileImagePath!) : null,
               child: profileImagePath == null
                   ? const Icon(
                       Icons.person,
@@ -55,9 +61,8 @@ class GradientAppBar extends StatelessWidget implements PreferredSizeWidget {
                   : null,
             ),
           ),
-
+          // Screen Title
           const Spacer(),
-
           Text(
             title,
             style: const TextStyle(
@@ -66,9 +71,8 @@ class GradientAppBar extends StatelessWidget implements PreferredSizeWidget {
               color: Colors.black,
             ),
           ),
-
+          // Menu Icon 
           const Spacer(),
-
           IconButton(
             onPressed: onMenuTap,
             icon: const Icon(
@@ -83,5 +87,5 @@ class GradientAppBar extends StatelessWidget implements PreferredSizeWidget {
   }
 
   @override
-  Size get preferredSize => const Size.fromHeight(80);
+  Size get preferredSize => const Size.fromHeight(90);
 }

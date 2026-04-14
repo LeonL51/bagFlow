@@ -19,6 +19,7 @@ class Expense {
     this.createdAt,
   });
 
+  // Maps the string description to the variable 
   Map<String, dynamic> toMap() {
     return {
       'userId': userId,

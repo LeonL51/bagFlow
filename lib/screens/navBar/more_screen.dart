@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:bag_flow/screens/navBar/home_screen.dart'; 
 
-class SpendingLogScreen extends StatefulWidget {
-  const SpendingLogScreen({super.key});
+class MoreScreen extends StatefulWidget {
+  const MoreScreen({super.key});
 
   @override
-  State<SpendingLogScreen> createState() => _SpendingLogScreenState();
+  State<MoreScreen> createState() => _MoreScreenState();
 }
 
-class _SpendingLogScreenState extends State<SpendingLogScreen> {
+class _MoreScreenState extends State<MoreScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(

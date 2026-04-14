@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:bag_flow/widgets/auth/password_field.dart';
 import 'package:bag_flow/widgets/auth/validators.dart';
 import 'package:bag_flow/widgets/buttons/createAccount.dart';
@@ -6,7 +7,6 @@ import 'package:bag_flow/widgets/layouts/divider.dart';
 import 'package:bag_flow/widgets/layouts/header.dart';
 import 'package:bag_flow/widgets/layouts/scaffold.dart';
 import 'package:bag_flow/widgets/layouts/sectionLabel.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:bag_flow/screens/credentials/forgotPassword.dart';
 import 'package:bag_flow/screens/credentials/phoneNumber.dart';
