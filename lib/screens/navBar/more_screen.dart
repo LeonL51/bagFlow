@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:bag_flow/screens/navBar/home_screen.dart'; 
+import 'package:bag_flow/widgets/layouts/fixed_appBar.dart';
 
 class MoreScreen extends StatefulWidget {
   const MoreScreen({super.key});
@@ -12,11 +12,12 @@ class _MoreScreenState extends State<MoreScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Track Expense'),
+      appBar: GradientAppBar(
+        title: 'More',
+        onMenuTap: () {},
       ),
       body: const Center(
-        child: Text('Track Expense Screen'),
+        child: Text('More Screen'),
       ),
     );
   }

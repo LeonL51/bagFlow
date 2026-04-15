@@ -19,7 +19,7 @@ class HomeScreen extends ConsumerStatefulWidget {
 }
 
 class _HomeScreenState extends ConsumerState<HomeScreen> {
-  int _currentIndex = 1;
+  int _currentIndex = 0;
   TimeFilter _selectedTime = TimeFilter.month;
 
   // TODO: Remove hardcoded var 
@@ -38,8 +38,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     },
   ];
 
-  // TODO: Make this possible when clicked on the add in Bottom nav bat 
-  Future<void> _openAddExpenseScreen() async {
+  // Link functionalities between home and add expense screens
+  Future<void> _openAddExpenseScreen() async { 
     final result = await Navigator.push(
       context,
       MaterialPageRoute(
@@ -57,44 +57,41 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 
   // Navigate to certain screens based on the icons 
   void _onTabTapped(int index) async {
-    if (index == 1) return;
+    if (index == _currentIndex) return; 
 
-    if (index == 2) {
+    setState(() {
+      _currentIndex = index; 
+    });
+
+    if (index == 1) {
       await Navigator.push(
         context,
         MaterialPageRoute(
           builder: (context) => const SpendingLogScreen(),
         ),
       );
-      return; 
-    }
-    // Navigates to Adding Expenses Screen
-    if (index == 3) {
-      await _openAddExpenseScreen(); 
-      return; 
-    }
-
-    if (index == 4) {
+    } else if (index == 2) {
+      await _openAddExpenseScreen();
+    } else if (index == 3) {
       await Navigator.push(
         context,
         MaterialPageRoute(
-          builder: (context) => const PlanningScreen()
-        )
+          builder: (context) => const PlanningScreen(),
+        ),
       );
-      return; 
-    }
-
-    if (index == 5) {
+    } else if (index == 4) {
       await Navigator.push(
         context,
         MaterialPageRoute(
-          builder: (context) => const MoreScreen()
-        )
+          builder: (context) => const MoreScreen(),
+        ),
       );
     }
+
+    if (!mounted) return; 
 
     setState(() {
-      _currentIndex = index;
+      _currentIndex = 0; // Default back to home when returning 
     });
   }
 
@@ -274,27 +271,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                             child: const Text("Add Expense"),
                           ),
                         ),
-
-                        const SizedBox(height: 12),
-                        SizedBox(
-                          width: double.infinity,
-                          child: OutlinedButton(
-                            onPressed: () async {
-                              await ref.read(authServiceProvider).signOut();
-
-                              if (!context.mounted) return;
-
-                              Navigator.of(context, rootNavigator: true)
-                                  .pushAndRemoveUntil(
-                                MaterialPageRoute(
-                                  builder: (context) => const LoginScreen(),
-                                ),
-                                (route) => false,
-                              );
-                            },
-                            child: const Text("Sign Out"),
-                          ),
-                        ),
                       ],
                     ),
                   ),
@@ -320,6 +296,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     );
   }
 
+  // Clarify the time frame on total spent 
   Widget _totalSpent() {
     return _summaryCard(
       title: _selectedTime == TimeFilter.week

@@ -24,8 +24,6 @@ class GradientAppBar extends StatelessWidget implements PreferredSizeWidget {
       shadowColor: Colors.transparent,
       surfaceTintColor: Colors.transparent,
       forceMaterialTransparency: true,
-      // Built-in go back button 
-      automaticallyImplyLeading: true,
       toolbarHeight: 90,
       flexibleSpace: IgnorePointer(
         child: Container(

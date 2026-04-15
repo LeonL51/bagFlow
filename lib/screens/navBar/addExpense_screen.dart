@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:bag_flow/widgets/layouts/fixed_bottomNavBar.dart';
 import 'package:bag_flow/screens/navBar/home_screen.dart';
 import 'package:bag_flow/screens/credentials/login_screen.dart';
+import 'package:bag_flow/widgets/layouts/fixed_appBar.dart';
 
 class AddExpenseScreen extends StatefulWidget {
   const AddExpenseScreen({super.key});
@@ -17,7 +18,7 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
   String selectedCategory = 'Food';
   String selectedVendor = 'Chipotle';
   String selectedStreaming = 'Netflix';
-  
+
   final TextEditingController priceController = TextEditingController();
 
   final Map<String, List<String>> categoryVendors = {
@@ -132,8 +133,9 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
     }
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Add Expense'),
+      appBar: GradientAppBar(
+        title: 'Add Expense',
+        onMenuTap: () {},
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
