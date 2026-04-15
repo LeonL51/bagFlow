@@ -8,6 +8,7 @@ import 'package:bag_flow/screens/navBar/addExpense_screen.dart';
 import 'package:bag_flow/screens/navBar/spendingLog_screen.dart';
 import 'package:bag_flow/screens/navBar/planning_screen.dart';
 import 'package:bag_flow/screens/navBar/more_screen.dart';
+import 'package:bag_flow/utils/bottom_nav_handler.dart';
 
 enum TimeFilter { week, month, year }
 
@@ -53,46 +54,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         _expenses.insert(0, result);
       });
     }
-  }
-
-  // Navigate to certain screens based on the icons 
-  void _onTabTapped(int index) async {
-    if (index == _currentIndex) return; 
-
-    setState(() {
-      _currentIndex = index; 
-    });
-
-    if (index == 1) {
-      await Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (context) => const SpendingLogScreen(),
-        ),
-      );
-    } else if (index == 2) {
-      await _openAddExpenseScreen();
-    } else if (index == 3) {
-      await Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (context) => const PlanningScreen(),
-        ),
-      );
-    } else if (index == 4) {
-      await Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (context) => const MoreScreen(),
-        ),
-      );
-    }
-
-    if (!mounted) return; 
-
-    setState(() {
-      _currentIndex = 0; // Default back to home when returning 
-    });
   }
 
   List<Map<String, dynamic>> get _filteredExpenses {
@@ -239,6 +200,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
+                        const SizedBox(height: 40),
                         Text(
                           "Welcome, $firstName",
                           style: const TextStyle(
@@ -262,15 +224,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 
                         const SizedBox(height: 24),
                         _recentTransactions(),
-
-                        const SizedBox(height: 16),
-                        SizedBox(
-                          width: double.infinity,
-                          child: ElevatedButton(
-                            onPressed: _openAddExpenseScreen,
-                            child: const Text("Add Expense"),
-                          ),
-                        ),
                       ],
                     ),
                   ),
@@ -290,7 +243,15 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         ),
         bottomNavigationBar: BottomNavBar(
           currentIndex: _currentIndex,
-          onTap: _onTabTapped,
+          onTap: (index) async {
+            await handleBottomNavTap(
+              context: context,
+              index: index,
+              currentIndex: _currentIndex,
+              setIndex: (i) => setState(() => _currentIndex = i),
+              openAddExpense: _openAddExpenseScreen,
+            ); 
+          }
         ),
       ),
     );

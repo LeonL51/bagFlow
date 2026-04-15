@@ -3,6 +3,7 @@ import 'package:bag_flow/widgets/layouts/fixed_bottomNavBar.dart';
 import 'package:bag_flow/screens/navBar/home_screen.dart';
 import 'package:bag_flow/screens/credentials/login_screen.dart';
 import 'package:bag_flow/widgets/layouts/fixed_appBar.dart';
+import 'package:bag_flow/utils/bottom_nav_handler.dart';
 
 class AddExpenseScreen extends StatefulWidget {
   const AddExpenseScreen({super.key});
@@ -12,7 +13,7 @@ class AddExpenseScreen extends StatefulWidget {
 }
 
 class _AddExpenseScreenState extends State<AddExpenseScreen> {
-  int _currentIndex = 1;
+  int _currentIndex = 2;
 
   // Default selections 
   String selectedCategory = 'Food';
@@ -31,31 +32,6 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
   void dispose() {
     priceController.dispose();
     super.dispose();
-  }
-
-  void _onTabTapped(int index) {
-    if (index == _currentIndex) return;
-
-    Widget nextScreen;
-
-    switch (index) {
-      case 0:
-        nextScreen = const HomeScreen();
-        break;
-      case 1:
-        nextScreen = const AddExpenseScreen();
-        break;
-      case 2:
-        nextScreen = const LoginScreen();
-        break;
-      default:
-        nextScreen = const HomeScreen();
-    }
-
-    Navigator.pushReplacement(
-      context,
-      MaterialPageRoute(builder: (context) => nextScreen),
-    );
   }
 
   void _addExpense() {
@@ -126,6 +102,8 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
 
   @override
   Widget build(BuildContext context) {
+     _currentIndex = 2;
+
     final vendors = categoryVendors[selectedCategory] ?? [];
 
     if (!vendors.contains(selectedVendor) && vendors.isNotEmpty) {
@@ -284,7 +262,14 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
       ),
       bottomNavigationBar: BottomNavBar(
         currentIndex: _currentIndex,
-        onTap: _onTabTapped,
+        onTap: (index) async {
+          await handleBottomNavTap(
+            context: context,
+            index: index,
+            currentIndex: _currentIndex,
+            setIndex: (i) => setState(() => _currentIndex = i),
+          ); 
+        }
       ),
     );
   }
