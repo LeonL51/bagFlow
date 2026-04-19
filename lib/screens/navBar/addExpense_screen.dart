@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:bag_flow/widgets/layouts/fixed_bottomNavBar.dart';
-import 'package:bag_flow/screens/navBar/home_screen.dart';
-import 'package:bag_flow/screens/credentials/login_screen.dart';
 import 'package:bag_flow/widgets/layouts/fixed_appBar.dart';
 import 'package:bag_flow/utils/bottom_nav_handler.dart';
 
@@ -17,12 +15,13 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
 
   // Default selections 
   String selectedCategory = 'Food';
-  String selectedVendor = 'Chipotle';
+  String selectedCompany = 'Chipotle';
   String selectedStreaming = 'Netflix';
 
   final TextEditingController priceController = TextEditingController();
 
-  final Map<String, List<String>> categoryVendors = {
+  // TODO: Replace hard coding for categories 
+  final Map<String, List<String>> categories = {
     'Food': ['Chipotle', 'McDonalds', 'Starbucks'],
     'Rent': ['Landlord', 'Apartment Office'],
     'Transportation': ['Uber', 'Lyft', 'Metro'],
@@ -37,33 +36,59 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
   void _addExpense() {
     final priceText = priceController.text.trim();
 
+    // Asks user to enter a price 
     if (priceText.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please enter a price')),
+      showDialog(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: const Text('Missing Price'),
+          content: const Text('Please enter a price'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('OK'),
+            ),
+          ],
+        ),
       );
-      return;
+      return; 
     }
 
+    // Removes comma 
     final normalizedText = priceText.replaceAll(',', '');
     final price = double.tryParse(normalizedText);
 
+    // Asks user to enter a valid price 
     if (price == null || price <= 0) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please enter a valid price')),
+      showDialog(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: const Text('Re-enter price'),
+          content: const Text('Please enter a valid price'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('OK')
+            )
+          ]
+        )
       );
-      return;
+      return; 
     }
 
+    // Holds expense data 
     final expense = {
       'category': selectedCategory,
-      'vendor': selectedVendor,
+      'company': selectedCompany,
       'price': price,
       'date': DateTime.now(),
     };
 
-    Navigator.pop(context, expense);
+    // Closes the current screen and sends expense back to the prev screen
+    Navigator.pop(context, expense); 
   }
 
+  // Replace this with a widget that I made 
   InputDecoration _inputDecoration(String hint) {
     return InputDecoration(
       hintText: hint,
@@ -84,10 +109,11 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),
         borderSide: const BorderSide(color: Colors.blue),
-      ),
+      )
     );
   }
 
+  // Format total pricing 
   String _formattedEnteredTotal() {
     final value = double.tryParse(
       priceController.text.trim().replaceAll(',', ''),
@@ -102,13 +128,10 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
 
   @override
   Widget build(BuildContext context) {
-     _currentIndex = 2;
-
-    final vendors = categoryVendors[selectedCategory] ?? [];
-
-    if (!vendors.contains(selectedVendor) && vendors.isNotEmpty) {
-      selectedVendor = vendors.first;
-    }
+    // Get list of companies from selected category
+    final companies = categories[selectedCategory] ?? []; 
+    // If the selected category contains the selected company, use that or default to null 
+    final dropdownValue = companies.contains(selectedCompany) ? selectedCompany : null; 
 
     return Scaffold(
       appBar: GradientAppBar(
@@ -127,25 +150,36 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
                 fontWeight: FontWeight.w600,
               ),
             ),
+
             const SizedBox(height: 8),
+            // Select a category 
             DropdownButtonFormField<String>(
               value: selectedCategory,
               decoration: _inputDecoration('Select category'),
-              items: categoryVendors.keys.map((category) {
+              items: categories.keys.map((category) {
                 return DropdownMenuItem<String>(
                   value: category,
                   child: Text(category),
                 );
               }).toList(),
+              // Update state after user input 
               onChanged: (value) {
                 if (value != null) {
                   setState(() {
                     selectedCategory = value;
-                    selectedVendor = categoryVendors[value]!.first;
-                  });
+                    // Gets list of companies from the selected category 
+                    final updatedCompanies = categories[value] ?? []; 
+                    // 
+                    if (updatedCompanies.isNotEmpty) {
+                      selectedCompany = updatedCompanies.first;
+                    } else {
+                      selectedCompany = '';
+                    }
+                  }); 
                 }
-              },
+              }, 
             ),
+
             const SizedBox(height: 20),
             Row(
               children: [
@@ -154,26 +188,27 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       const Text(
-                        'Vendor',
+                        'Company',
                         style: TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.w600,
                         ),
                       ),
+
                       const SizedBox(height: 8),
                       DropdownButtonFormField<String>(
-                        value: selectedVendor,
-                        decoration: _inputDecoration('Select vendor'),
-                        items: vendors.map((vendor) {
+                        value: dropdownValue,
+                        decoration: _inputDecoration('Select'), 
+                        items: companies.map((company) {
                           return DropdownMenuItem<String>(
-                            value: vendor,
-                            child: Text(vendor),
+                            value: company,
+                            child: Text(company),
                           );
                         }).toList(),
                         onChanged: (value) {
                           if (value != null) {
                             setState(() {
-                              selectedVendor = value;
+                              selectedCompany = value;
                             });
                           }
                         },
@@ -241,6 +276,7 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
                 ],
               ),
             ),
+
             const SizedBox(height: 24),
             SizedBox(
               width: double.infinity,
@@ -269,7 +305,7 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
             currentIndex: _currentIndex,
             setIndex: (i) => setState(() => _currentIndex = i),
           ); 
-        }
+        },
       ),
     );
   }

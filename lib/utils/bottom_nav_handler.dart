@@ -13,47 +13,34 @@ Future<void> handleBottomNavTap({
   required Function(int) setIndex,
   Future<void> Function()? openAddExpense,
 }) async {
-  if (index == currentIndex && index != 2) return;
 
-  if (index == 0) {
-    setIndex(0);
-    await Navigator.pushReplacement(
-      context,
-      MaterialPageRoute(
-        builder: (_) => const HomeScreen(),
-      ),
-    );
-  } else if (index == 1) {
-    setIndex(1);
-    await Navigator.pushReplacement(
-      context,
-      MaterialPageRoute(
-        builder: (_) => const SpendingLogScreen(),
-      ),
-    );
-  } else if (index == 2) {
-      setIndex(2);
-      await Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(
-          builder: (_) => const AddExpenseScreen(),
-        ),
-      );
-  } else if (index == 3) {
-    setIndex(3);
-    await Navigator.pushReplacement(
-      context,
-      MaterialPageRoute(
-        builder: (_) => const PlanningScreen(),
-      ),
-    );
-  } else if (index == 4) {
-    setIndex(4);
-    await Navigator.pushReplacement(
-      context,
-      MaterialPageRoute(
-        builder: (_) => const MoreScreen(),
-      ),
-    );
+  if (index == currentIndex) return;
+
+  Widget screen;
+  switch (index) {
+    case 0:
+      screen = const HomeScreen();
+      break;
+    case 1:
+      screen = const SpendingLogScreen();
+      break;
+    case 2:
+      screen = const AddExpenseScreen();
+      break;
+    case 3:
+      screen = const PlanningScreen();
+      break;
+    case 4:
+      screen = const MoreScreen();
+      break;
+    default:
+      return;
   }
+
+  setIndex(index);
+
+  await Navigator.pushReplacement(
+    context,
+    MaterialPageRoute(builder: (_) => screen),
+  );
 }
