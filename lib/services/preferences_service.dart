@@ -3,7 +3,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 class PreferencesService {
   static const _hasSeenWelcomeKey = 'has_seen_welcome';
   static const _keepSignedInKey = 'keep_signed_in';
-
+  static const _notificationsKey = 'notifications_enabled';
   static const _savedEmailKey = 'saved_email';
 
   // SharedPreferences allow access to local device storage(simple key-value storage)
@@ -12,7 +12,7 @@ class PreferencesService {
     await prefs.setString(_savedEmailKey, email);
   }
 
-  // Retrieves stored email 
+  // Retrieves stored email
   Future<String?> getSavedEmail() async {
     final prefs = await SharedPreferences.getInstance();
     return prefs.getString(_savedEmailKey);
@@ -28,11 +28,21 @@ class PreferencesService {
     return prefs.getBool(_keepSignedInKey) ?? true;
   }
 
+  Future<void> setNotificationsEnabled(bool value) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool(_notificationsKey, value);
+  }
+
+  Future<bool> getNotificationsEnabled() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getBool(_notificationsKey) ?? true;
+  }
+
   Future<void> setHasSeenWelcome(bool value) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool(_hasSeenWelcomeKey, value);
   }
-  
+
   Future<bool> getHasSeenWelcome() async {
     final prefs = await SharedPreferences.getInstance();
     return prefs.getBool(_hasSeenWelcomeKey) ?? false;
