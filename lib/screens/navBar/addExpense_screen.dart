@@ -9,7 +9,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-
 class AddExpenseScreen extends ConsumerStatefulWidget {
   const AddExpenseScreen({super.key});
 
@@ -184,8 +183,10 @@ class _AddExpenseScreenState extends ConsumerState<AddExpenseScreen> {
     setState(() {
       if (result == 'Other') {
         row.isOtherVendor = true;
-        row.selectedVendor = null;
-        row.vendorController.clear();
+        row.selectedVendor = 'Other';
+
+        // Show "Other" immediately so user sees feedback
+        row.vendorController.text = 'Other';
       } else {
         row.isOtherVendor = false;
         row.selectedVendor = result;
@@ -193,7 +194,11 @@ class _AddExpenseScreenState extends ConsumerState<AddExpenseScreen> {
       }
     });
 
-    row.priceFocusNode.requestFocus();
+    if (row.isOtherVendor) {
+      row.vendorFocusNode.requestFocus();
+    } else {
+      row.priceFocusNode.requestFocus();
+    }
   }
 
   void _onCategoryTapped() async {
@@ -291,6 +296,7 @@ class _AddExpenseScreenState extends ConsumerState<AddExpenseScreen> {
       if (!mounted) return;
 
       _showMessage('Expense saved.');
+
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(
@@ -451,20 +457,24 @@ class _AddExpenseScreenState extends ConsumerState<AddExpenseScreen> {
       ),
       child: Column(
         children: [
-          GestureDetector(
-            onTap: () => _openVendorSearch(index),
-            child: AbsorbPointer(
-              child: TextFormField(
-                controller: row.vendorController,
-                readOnly: !row.isOtherVendor,
-                style: const TextStyle(color: Colors.black),
-                decoration: _inputDecoration(
-                  hint: selectedCategory == null
-                      ? 'Select category first'
-                      : 'Search vendor',
-                  suffixIcon: const Icon(Icons.search_rounded),
-                ),
-              ),
+          TextFormField(
+            controller: row.vendorController,
+            focusNode: row.vendorFocusNode,
+
+            // Editable ONLY when "Other" is selected
+            readOnly: !row.isOtherVendor,
+
+            // Open search ONLY when not "Other"
+            onTap: row.isOtherVendor ? null : () => _openVendorSearch(index),
+
+            style: const TextStyle(color: Colors.black),
+            decoration: _inputDecoration(
+              hint: selectedCategory == null
+                  ? 'Select category first'
+                  : 'Search vendor',
+              suffixIcon: row.isOtherVendor
+                  ? const Icon(Icons.edit_rounded)
+                  : const Icon(Icons.search_rounded),
             ),
           ),
           const SizedBox(height: 12),
@@ -535,7 +545,6 @@ class _AddExpenseScreenState extends ConsumerState<AddExpenseScreen> {
       ),
     );
   }
-
 }
 
 class _ExpenseRowData {
@@ -544,6 +553,8 @@ class _ExpenseRowData {
 
   final TextEditingController vendorController = TextEditingController();
   final TextEditingController priceController = TextEditingController();
+
+  final FocusNode vendorFocusNode = FocusNode();
   final FocusNode priceFocusNode = FocusNode();
 
   void clear() {
@@ -556,6 +567,7 @@ class _ExpenseRowData {
   void dispose() {
     vendorController.dispose();
     priceController.dispose();
+    vendorFocusNode.dispose();
     priceFocusNode.dispose();
   }
 }
