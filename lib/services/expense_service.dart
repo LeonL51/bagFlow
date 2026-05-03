@@ -59,4 +59,20 @@ class ExpenseService {
           .toList();
     });
   }
+
+  Future<void> deleteAllExpenses(String userId) async {
+    final snapshot = await _firestore
+        .collection('users')
+        .doc(userId)
+        .collection('expenses')
+        .get();
+
+    final batch = _firestore.batch();
+
+    for (final doc in snapshot.docs) {
+      batch.delete(doc.reference);
+    }
+
+    await batch.commit();
+  }
 }

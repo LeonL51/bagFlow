@@ -44,4 +44,16 @@ class UserService {
       });
     }
   }
+
+  Future<void> updateUserProfile({
+    required String uid,
+    required String fullName,
+    String? photoUrl,
+  }) async {
+    await _firestore.collection('users').doc(uid).update({
+      'fullName': fullName.trim(),
+      'photoUrl': photoUrl?.trim(),
+      'updatedAt': FieldValue.serverTimestamp(),
+    });
+  }
 }
