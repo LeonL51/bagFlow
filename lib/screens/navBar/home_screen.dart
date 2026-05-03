@@ -127,8 +127,10 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 
   // Return the most recent 7 transactions regardless of selected time frame
   List<Map<String, dynamic>> _recentTransactions() {
+    // Creates a copy of the original data to prevent modification when sorting
     final recentExpenses = List<Map<String, dynamic>>.from(_expenses);
 
+    // Sorts transactions from newest -> oldest dates 
     recentExpenses.sort((a, b) {
       final aDate = a['date'] as DateTime;
       final bDate = b['date'] as DateTime;
@@ -183,8 +185,10 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 
     switch (_selectedTime) {
       case TimeFilter.week:
+        // Go back a week
         final start =
             DateTime(now.year, now.month, now.day).subtract(const Duration(days: 6));
+        // Collect data points 
         final List<_Chart> dataPoints = [];
 
         // Add expenses for the past 7 days
@@ -193,6 +197,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           double total = 0;
 
           for (final expense in _expenses) {
+            // Convert to DateTime data type 
             final expenseDate = expense['date'] as DateTime;
 
             if (expenseDate.year == day.year &&
@@ -266,6 +271,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     }
   }
 
+  // Return expenses from the time frame before selected time frame(e.g. the week before this week)
   List<Map<String, dynamic>> _previousPeriodExpenses() {
     final now = DateTime.now();
 
@@ -307,6 +313,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     );
   }
 
+  // Find totals and rank categories based on spending 
   List<_CategoryInsight> _categoryInsights() {
     final filtered = _expensesTime();
     final total = _totalSpent();
@@ -317,12 +324,14 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 
     final Map<String, double> categoryTotals = {};
 
+    // Find total for every category
     for (final expense in filtered) {
       final category = (expense['category'] ?? 'Other').toString();
       final amount = (expense['price'] as num).toDouble();
       categoryTotals[category] = (categoryTotals[category] ?? 0) + amount;
     }
 
+    // Break down categories
     final insights = categoryTotals.entries.map((entry) {
       final percentage = (entry.value / total) * 100;
       return _CategoryInsight(
@@ -332,10 +341,12 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       );
     }).toList();
 
+    // Rank categories based on spending
     insights.sort((a, b) => b.amount.compareTo(a.amount));
     return insights;
   }
 
+  // Get the breakdown of the most expensive category 
   Map<String, dynamic>? _mostSpentCategory() {
     final categoryInsights = _categoryInsights();
 
@@ -360,6 +371,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 
     Map<String, dynamic> highest = filtered.first;
 
+    // Compare current price to first expense returned to find highest transaction
     for (final expense in filtered) {
       final currentPrice = (expense['price'] as num).toDouble();
       final highestPrice = (highest['price'] as num).toDouble();
@@ -372,6 +384,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     return highest;
   }
 
+  // Return response based on differences in percentage from the previous time period 
   String _comparisonToPreviousPeriod() {
     final current = _totalSpent();
     final previous = _previousPeriodTotalSpent();
@@ -396,6 +409,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     }
   }
 
+  // Generates the pie chart based on categoryInsights 
   List<PieChartSectionData> _pieChartSections() {
     final categoryInsights = _categoryInsights();
 
@@ -404,7 +418,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     }
 
     final List<Color> sectionColors = [
-      Colors.cyanAccent,
+      Colors.red,
       Colors.lightBlueAccent,
       Colors.deepPurpleAccent,
       Colors.orangeAccent,
@@ -413,13 +427,16 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       Colors.amberAccent,
     ];
 
+    // Generate pie slices 
     return List.generate(categoryInsights.length, (index) {
+      // Get current items 
       final item = categoryInsights[index];
+      // Highlight the biggest category 
       final isHighest = index == 0;
 
       return PieChartSectionData(
         value: item.amount,
-        title: '${item.percentage.toStringAsFixed(0)}%',
+        title: '${item.percentage.toStringAsFixed(2)}%',
         radius: isHighest ? 62 : 54,
         color: sectionColors[index % sectionColors.length],
         titleStyle: const TextStyle(
@@ -462,17 +479,21 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           getTitlesWidget: (value, meta) {
             final index = value.toInt();
 
+            // Safety check
             if (index < 0 || index >= chartPoints.length) {
               return const SizedBox.shrink();
             }
 
             return Padding(
               padding: const EdgeInsets.only(top: 8),
-              child: Text(
-                chartPoints[index].label,
-                style: const TextStyle(
-                  color: Colors.white70,
-                  fontSize: 10,
+              child: Transform.rotate(
+                angle: -0.5, // rotate ~ -28 degrees
+                child: Text(
+                  chartPoints[index].label,
+                  style: const TextStyle(
+                    fontSize: 10,
+                    color: Colors.white70,
+                  ),
                 ),
               ),
             );
@@ -484,12 +505,14 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 
   // Add the chart widget
   Widget _buildExpenseChart() {
+    // Get all the data points 
     final chartPoints = _chartData();
 
     final maxVal = chartPoints.isEmpty
         ? 10.0
         : chartPoints.map((e) => e.value).reduce((a, b) => a > b ? a : b);
 
+    // Chart's height would be 25% taller than our max value
     final maxY = (maxVal * 1.25).clamp(10.0, double.infinity);
 
     return Container(
@@ -505,6 +528,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               LineChartData(
                 minY: 0,
                 maxY: maxY,
+                // Adds horizontal lines 
                 gridData: FlGridData(
                   show: true,
                   drawVerticalLine: false,
@@ -513,18 +537,22 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                     strokeWidth: 1,
                   ),
                 ),
-                borderData: FlBorderData(show: false),
+                // Removes chart border ?????????????
+                borderData: FlBorderData(show: true),
                 titlesData: _chartTitles(chartPoints),
                 lineBarsData: [
                   LineChartBarData(
                     isCurved: false,
                     barWidth: 3,
                     color: Colors.cyanAccent,
+                    // Puts a dot on each point
                     dotData: FlDotData(show: true),
+                    // Fills area under line 
                     belowBarData: BarAreaData(
                       show: true,
                       color: Colors.cyanAccent.withOpacity(0.15),
                     ),
+                    // Converts data into points 
                     spots: List.generate(
                       chartPoints.length,
                       (index) => FlSpot(
@@ -556,6 +584,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                     x: index,
                     barRods: [
                       BarChartRodData(
+                        // Set bar height
                         toY: chartPoints[index].value,
                         width: _selectedTime == TimeFilter.month ? 12 : 18,
                         borderRadius: BorderRadius.circular(6),
@@ -569,7 +598,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     );
   }
 
+  // Open/close for insights 
   Widget _buildInsightsSection() {
+    // Rounded container
     return Container(
       margin: const EdgeInsets.only(top: 18),
       decoration: BoxDecoration(
@@ -628,30 +659,31 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               ),
             ),
           ),
-          AnimatedCrossFade(
-            firstChild: const SizedBox.shrink(),
-            secondChild: Padding(
-              padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-              child: Column(
-                children: [
-                  _buildInsightTabSwitcher(),
-                  const SizedBox(height: 16),
-                  _selectedInsightTab == InsightTab.pieChart
-                      ? _buildPieChartTab()
-                      : _buildBreakdownTab(),
-                ],
-              ),
-            ),
-            crossFadeState: _isInsightsExpanded
-                ? CrossFadeState.showSecond
-                : CrossFadeState.showFirst,
-            duration: const Duration(milliseconds: 220),
-          ),
+          AnimatedSwitcher(
+            duration: Duration(milliseconds: 250),
+            child: _isInsightsExpanded
+                ? Padding(
+                    key: ValueKey(1), // Visible content 
+                    padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+                    child: Column(
+                      children: [
+                        _buildInsightTabSwitcher(),
+                        const SizedBox(height: 16),
+                        // Show whichever tab is selected 
+                        _selectedInsightTab == InsightTab.pieChart
+                            ? _buildPieChartTab()
+                            : _buildBreakdownTab(),
+                      ],
+                    ),
+                  )
+                : const SizedBox.shrink(key: ValueKey(2)), // Section collapses 
+          ), 
         ],
       ),
     );
   }
 
+  // Creates the tab to switch from pie chart to breakdown
   Widget _buildInsightTabSwitcher() {
     return Container(
       decoration: BoxDecoration(
@@ -661,6 +693,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       ),
       child: Row(
         children: [
+          // For pie chart tab 
           Expanded(
             child: GestureDetector(
               onTap: () {
@@ -689,6 +722,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               ),
             ),
           ),
+          // For breakdown tab 
           Expanded(
             child: GestureDetector(
               onTap: () {
@@ -722,6 +756,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     );
   }
 
+  // Builds the pie chart tab section 
   Widget _buildPieChartTab() {
     final categoryInsights = _categoryInsights();
 
@@ -745,8 +780,11 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           height: 220,
           child: PieChart(
             PieChartData(
+              // Gaps between slices 
               sectionsSpace: 3,
+              // Donut hole 
               centerSpaceRadius: 46,
+              // Actual data slices 
               sections: _pieChartSections(),
             ),
           ),
@@ -760,6 +798,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             borderRadius: BorderRadius.circular(14),
             border: Border.all(color: Colors.cyanAccent.withOpacity(0.35)),
           ),
+          // Highlights the most expensive category 
           child: Text(
             'Highest spending category: ${highest.category} (${_formatCurrency(highest.amount)})',
             style: const TextStyle(
@@ -769,6 +808,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           ),
         ),
         const SizedBox(height: 14),
+        // Breaks down percentage of categories below the pie chart 
         ...categoryInsights.map((item) {
           final isHighest = item.category == highest.category;
 
@@ -819,6 +859,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     );
   }
 
+  // Creates the different insight sections 
   Widget _buildBreakdownTab() {
     final mostSpent = _mostSpentCategory();
     final highestTransaction = _highestTransaction();
@@ -854,6 +895,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     );
   }
 
+  // Format the breakdown cards
   Widget _buildBreakdownCard({
     required String title,
     required String value,
@@ -983,7 +1025,15 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             fontWeight: FontWeight.bold,
           ),
         ),
+
+        const SizedBox(height: 8),
+        Container(
+          height: 1,
+          color: Colors.white24, // subtle white line
+        ),
+
         const SizedBox(height: 12),
+        // For every expense, build a widget, insert them into this list 
         ...filtered.map((expense) {
           final company = expense['company'];
           final category = expense['category'];

@@ -19,7 +19,9 @@
 
 10. The Breakdown tab provides a concise summary of spending behavior. It should include the most spent category, the highest single transaction (amount and merchant), the total number of transactions, and how spending compares to the previous time period. The UI should be simple and clean, with a tab switcher below the chart and a dynamic content area that updates instantly when switching tabs.
 
-11. Here is the idea for my add expense screen: its going to start with a category dropdown bar that when pressed on, its going to have a container that contains all these different categories, then it would be followed by a row of 2 columns. the first column would include vendors that users can choose from depending on the category that was they selected(include an other option) for users to manually input the restaurant. On the other half, allow users to input the price. Following this part, have a centered circular plus button that allows users to input new items if need be. Following this, include the total on the far left and the value on the far right. then right above the nav bar, include a confirm button for users to submit their entires. this will change data throughout other files
+11. Here is the idea for my add expense screen: its going to start with a category dropdown bar that when pressed on, its going to have a container that contains all these different categories, then it would be followed by a row of 2 columns. the first column would include vendors that users can choose from depending on the category that was they selected(include an other option) for users to manually input the restaurant. On the other half, allow users to input the price. Following this part, have a centered circular plus button that allows users to input new items if need be. Following this, include the total on the far left and the value on the far right. then right above the nav bar, include a confirm button for users to submit their entires. this will change data throughout other files.
+
+12. 
 
 
 
