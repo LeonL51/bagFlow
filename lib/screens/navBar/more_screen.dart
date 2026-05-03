@@ -1,6 +1,8 @@
 import 'package:bag_flow/providers/auth_provider.dart';
 import 'package:bag_flow/providers/expense_provider.dart';
-import 'package:bag_flow/screens/credentials/forgotPassword.dart';
+import 'package:bag_flow/screens/credentials/login_screen.dart';
+import 'package:bag_flow/screens/navBar/edit_profile_screen.dart';
+import 'package:bag_flow/screens/navBar/settings_reset_password_screen.dart';
 import 'package:bag_flow/utils/bottom_nav_handler.dart';
 import 'package:bag_flow/widgets/layouts/fixed_appBar.dart';
 import 'package:bag_flow/widgets/layouts/fixed_bottomNavBar.dart';
@@ -17,6 +19,7 @@ class MoreScreen extends ConsumerStatefulWidget {
 class _MoreScreenState extends ConsumerState<MoreScreen> {
   int _currentIndex = 4;
   bool _keepSignedIn = true;
+  bool _notificationsEnabled = true;
   bool _loadingPrefs = true;
 
   @override
@@ -27,12 +30,15 @@ class _MoreScreenState extends ConsumerState<MoreScreen> {
 
   Future<void> _loadPreferences() async {
     final prefs = ref.read(preferencesServiceProvider);
+
     final keepSignedIn = await prefs.getKeepSignedIn();
+    final notificationsEnabled = await prefs.getNotificationsEnabled();
 
     if (!mounted) return;
 
     setState(() {
       _keepSignedIn = keepSignedIn;
+      _notificationsEnabled = notificationsEnabled;
       _loadingPrefs = false;
     });
   }
@@ -41,6 +47,15 @@ class _MoreScreenState extends ConsumerState<MoreScreen> {
   Future<void> _updateKeepSignedIn(bool value) async {
     setState(() => _keepSignedIn = value);
     await ref.read(preferencesServiceProvider).setKeepSignedIn(value);
+  }
+
+  Future<void> _updateNotifications(bool value) async {
+    setState(() => _notificationsEnabled = value);
+    await ref.read(preferencesServiceProvider).setNotificationsEnabled(value);
+
+    _showMessage(
+      value ? 'Notifications enabled' : 'Notifications disabled',
+    );
   }
 
   // Logout pop up button
@@ -67,6 +82,55 @@ class _MoreScreenState extends ConsumerState<MoreScreen> {
     if (confirm != true) return;
 
     await ref.read(authServiceProvider).signOut();
+
+    if (!mounted) return;
+
+    Navigator.pushAndRemoveUntil(
+      context,
+      MaterialPageRoute(builder: (_) => const LoginScreen()),
+      (route) => false,
+    );
+  }
+
+  Future<void> _clearData() async {
+    final user = ref.read(authServiceProvider).currentUser;
+
+    if (user == null) {
+      _showMessage('Please log in first');
+      return;
+    }
+
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Clear all data?'),
+        content: const Text(
+          'This will permanently remove all saved expenses from your account.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Cancel'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('Clear Data'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirm != true) return;
+
+    try {
+      await ref.read(expenseServiceProvider).deleteAllExpenses(user.uid);
+
+      if (!mounted) return;
+
+      _showMessage('All expense data cleared');
+    } catch (e) {
+      _showMessage('Could not clear data: $e');
+    }
   }
 
   Future<void> _exportData() async {
@@ -118,10 +182,12 @@ class _MoreScreenState extends ConsumerState<MoreScreen> {
                   // Get full name and email from Firestore
                   final name = profile?['fullName'] ?? 'User';
                   final email = profile?['email'] ?? user?.email ?? 'No email found';
+                  final photoUrl = profile?['photoUrl'] ?? user?.photoURL;
 
                   return _profileCard(
                     name: name.toString(),
                     email: email.toString(),
+                    photoUrl: photoUrl?.toString(),
                   );
                 },
 
@@ -129,12 +195,14 @@ class _MoreScreenState extends ConsumerState<MoreScreen> {
                 loading: () => _profileCard(
                   name: 'Loading...',
                   email: 'Fetching profile',
+                  photoUrl: null,
                 ),
 
                 // Error state of profile card
                 error: (_, __) => _profileCard(
                   name: 'Invalid User',
                   email: user?.email ?? 'Profile unavailable',
+                  photoUrl: user?.photoURL,
                 ),
               ),
 
@@ -146,18 +214,25 @@ class _MoreScreenState extends ConsumerState<MoreScreen> {
                 _settingsTile(
                   icon: Icons.person_outline_rounded,
                   title: 'Edit Profile',
-                  subtitle: 'Update your name and account details',
-                  onTap: () => _comingSoon('Edit profile'),
-                ),
-                _settingsTile(
-                  icon: Icons.lock_outline_rounded,
-                  title: 'Reset Password',
-                  subtitle: 'Send yourself a password reset link',
+                  subtitle: 'Update profile image and name',
                   onTap: () {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (_) => const ForgotPassword(),
+                        builder: (_) => const EditProfileScreen(),
+                      ),
+                    );
+                  },
+                ),
+                _settingsTile(
+                  icon: Icons.lock_outline_rounded,
+                  title: 'Reset Password',
+                  subtitle: 'Send a reset link to your email',
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => const SettingsResetPasswordScreen(),
                       ),
                     );
                   },
@@ -177,11 +252,13 @@ class _MoreScreenState extends ConsumerState<MoreScreen> {
                   loading: _loadingPrefs,
                   onChanged: _updateKeepSignedIn,
                 ),
-                _settingsTile(
+                _switchTile(
                   icon: Icons.notifications_none_rounded,
                   title: 'Notifications',
                   subtitle: 'Budget reminders and spending alerts',
-                  onTap: () => _comingSoon('Notifications'),
+                  value: _notificationsEnabled,
+                  loading: _loadingPrefs,
+                  onChanged: _updateNotifications,
                 ),
               ]),
 
@@ -201,7 +278,7 @@ class _MoreScreenState extends ConsumerState<MoreScreen> {
                   title: 'Clear Data',
                   subtitle: 'Remove all saved expenses',
                   danger: true,
-                  onTap: () => _comingSoon('Clear data'),
+                  onTap: _clearData,
                 ),
               ]),
 
@@ -248,7 +325,10 @@ class _MoreScreenState extends ConsumerState<MoreScreen> {
   Widget _profileCard({
     required String name,
     required String email,
+    required String? photoUrl,
   }) {
+    final hasPhoto = photoUrl != null && photoUrl.isNotEmpty;
+
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(18),
@@ -267,18 +347,17 @@ class _MoreScreenState extends ConsumerState<MoreScreen> {
       child: Row(
         children: [
           // Icon
-          Container(
-            width: 62,
-            height: 62,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              color: const Color(0xFF3B82F6).withOpacity(0.18),
-            ),
-            child: const Icon(
-              Icons.person_rounded,
-              color: Color(0xFF93C5FD),
-              size: 34,
-            ),
+          CircleAvatar(
+            radius: 31,
+            backgroundColor: const Color(0xFF3B82F6).withOpacity(0.18),
+            backgroundImage: hasPhoto ? NetworkImage(photoUrl) : null,
+            child: hasPhoto
+                ? null
+                : const Icon(
+                    Icons.person_rounded,
+                    color: Color(0xFF93C5FD),
+                    size: 34,
+                  ),
           ),
           const SizedBox(width: 16),
 
