@@ -1,17 +1,23 @@
+import 'package:bag_flow/models/expense.dart';
+import 'package:bag_flow/providers/auth_provider.dart';
+import 'package:bag_flow/providers/expense_provider.dart';
+import 'package:bag_flow/utils/bottom_nav_handler.dart';
+import 'package:bag_flow/widgets/layouts/fixed_appBar.dart';
+import 'package:bag_flow/widgets/layouts/fixed_bottomNavBar.dart';
+import 'package:bag_flow/screens/navBar/home_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:bag_flow/widgets/layouts/fixed_bottomNavBar.dart';
-import 'package:bag_flow/widgets/layouts/fixed_appBar.dart';
-import 'package:bag_flow/utils/bottom_nav_handler.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-class AddExpenseScreen extends StatefulWidget {
+
+class AddExpenseScreen extends ConsumerStatefulWidget {
   const AddExpenseScreen({super.key});
 
   @override
-  State<AddExpenseScreen> createState() => _AddExpenseScreenState();
+  ConsumerState<AddExpenseScreen> createState() => _AddExpenseScreenState();
 }
 
-class _AddExpenseScreenState extends State<AddExpenseScreen> {
+class _AddExpenseScreenState extends ConsumerState<AddExpenseScreen> {
   int _currentIndex = 2;
 
   String? selectedCategory;
@@ -62,6 +68,14 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
       'Udemy',
       'Other',
     ],
+    'Bills': [
+      'Verizon',
+      'Internet',
+      'Electric',
+      'Water',
+      'Insurance',
+      'Other',
+    ],
   };
 
   final List<_ExpenseRowData> _expenseRows = [];
@@ -94,6 +108,7 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
     }
 
     _expenseRows[index].dispose();
+
     setState(() {
       _expenseRows.removeAt(index);
     });
@@ -119,9 +134,11 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
 
   double _totalAmount() {
     double total = 0.0;
+
     for (final row in _expenseRows) {
       total += _rowPrice(row);
     }
+
     return total;
   }
 
@@ -132,15 +149,18 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
   bool _isRowValid(_ExpenseRowData row) {
     final hasVendor = row.isOtherVendor
         ? row.vendorController.text.trim().isNotEmpty
-        : (row.selectedVendor != null && row.selectedVendor!.trim().isNotEmpty);
+        : (row.selectedVendor != null &&
+            row.selectedVendor!.trim().isNotEmpty);
 
     final price = _rowPrice(row);
+
     return hasVendor && price > 0;
   }
 
   bool _canSubmit() {
     if (selectedCategory == null) return false;
     if (_expenseRows.isEmpty) return false;
+
     return _expenseRows.any(_isRowValid);
   }
 
@@ -151,6 +171,7 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
     }
 
     final row = _expenseRows[rowIndex];
+
     final result = await showSearch<String?>(
       context: context,
       delegate: VendorSearchDelegate(
@@ -225,7 +246,7 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
     });
   }
 
-  void _submitExpenses() {
+  Future<void> _submitExpenses() async {
     if (selectedCategory == null) {
       _showMessage('Please select a category.');
       return;
@@ -238,20 +259,49 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
       return;
     }
 
+    final user = ref.read(authServiceProvider).currentUser;
+
+    if (user == null) {
+      _showMessage('Please log in before adding expenses.');
+      return;
+    }
+
+    final now = DateTime.now();
+
     final expenses = validRows.map((row) {
       final vendorName = row.isOtherVendor
           ? row.vendorController.text.trim()
           : (row.selectedVendor ?? row.vendorController.text.trim());
 
-      return {
-        'category': selectedCategory,
-        'company': vendorName,
-        'price': _rowPrice(row),
-        'date': DateTime.now(),
-      };
+      return Expense(
+        id: '',
+        userId: user.uid,
+        title: vendorName,
+        amount: _rowPrice(row),
+        category: selectedCategory!,
+        date: now,
+      );
     }).toList();
 
-    Navigator.pop(context, expenses);
+    try {
+      ref.read(expenseLoadingProvider.notifier).state = true;
+
+      await ref.read(expenseServiceProvider).addExpenses(expenses);
+
+      if (!mounted) return;
+
+      _showMessage('Expense saved.');
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(
+          builder: (_) => const HomeScreen(),
+        ),
+      );
+    } catch (e) {
+      _showMessage('Could not save expense: $e');
+    } finally {
+      ref.read(expenseLoadingProvider.notifier).state = false;
+    }
   }
 
   void _showMessage(String message) {
@@ -286,7 +336,10 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
       ),
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(14),
-        borderSide: const BorderSide(color: Color(0xFF8B5CF6), width: 1.3),
+        borderSide: const BorderSide(
+          color: Color(0xFF8B5CF6),
+          width: 1.3,
+        ),
       ),
     );
   }
@@ -294,6 +347,7 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
   @override
   Widget build(BuildContext context) {
     final total = _totalAmount();
+    final isLoading = ref.watch(expenseLoadingProvider);
 
     return Scaffold(
       backgroundColor: Colors.black,
@@ -330,135 +384,43 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
                             fontWeight: FontWeight.w500,
                           ),
                           decoration: _inputDecoration(
-                            hint: selectedCategory ?? 'Food',
-                            suffixIcon: const Icon(
-                              Icons.keyboard_arrow_down,
-                              color: Color(0xFFB9BCC6),
-                            ),
+                            hint: selectedCategory ?? 'Select a category',
+                            suffixIcon:
+                                const Icon(Icons.keyboard_arrow_down_rounded),
                             readOnly: true,
                           ),
                         ),
                       ),
                     ),
-                    const SizedBox(height: 28),
-
-                    ...List.generate(_expenseRows.length, (index) {
-                      final row = _expenseRows[index];
-                      return Padding(
-                        padding: const EdgeInsets.only(bottom: 14),
-                        child: _ExpenseInputRow(
-                          index: index,
-                          row: row,
-                          onVendorTap: () => _openVendorSearch(index),
-                          onDelete: () => _removeRow(index),
-                          onChanged: () => setState(() {}),
-                          inputDecorationBuilder: _inputDecoration,
-                        ),
-                      );
-                    }),
-
-                    const SizedBox(height: 8),
-                    Center(
-                      child: GestureDetector(
-                        onTap: _addNewRow,
-                        child: Container(
-                          width: 58,
-                          height: 58,
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            color: Colors.blue,
-                            boxShadow: [
-                              BoxShadow(
-                                color: const Color(0xFF8B5CF6).withOpacity(0.35),
-                                blurRadius: 18,
-                                spreadRadius: 1,
-                              ),
-                            ],
-                          ),
-                          child: const Icon(
-                            Icons.add,
-                            color: Colors.white,
-                            size: 30,
-                          ),
-                        ),
-                      ),
-                    ),
-
-                    const SizedBox(height: 34),
-
-                    Container(
-                      width: double.infinity,
-                      height: 1.2,
-                      color: Colors.white,
-                    ),
-
-                    const SizedBox(height: 18),
-
+                    const SizedBox(height: 22),
                     Row(
                       children: [
-                        const Text(
-                          'Total:',
-                          style: TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.w700,
-                            color: Colors.white,
-                          ),
-                        ),
-                        const Spacer(),
-                        AnimatedSwitcher(
-                          duration: const Duration(milliseconds: 180),
-                          transitionBuilder: (child, animation) {
-                            return FadeTransition(
-                              opacity: animation,
-                              child: child,
-                            );
-                          },
+                        const Expanded(
                           child: Text(
-                            _formatCurrency(total),
-                            key: ValueKey(total.toStringAsFixed(2)),
-                            style: const TextStyle(
-                              fontSize: 20,
-                              fontWeight: FontWeight.w800,
+                            'Items',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w700,
                               color: Colors.white,
                             ),
                           ),
                         ),
+                        TextButton.icon(
+                          onPressed: _addNewRow,
+                          icon: const Icon(Icons.add_rounded),
+                          label: const Text('Add Row'),
+                        ),
                       ],
                     ),
+                    const SizedBox(height: 10),
+                    ...List.generate(_expenseRows.length, (index) {
+                      return _expenseRow(index);
+                    }),
                   ],
                 ),
               ),
             ),
-
-            SafeArea(
-              top: false,
-              child: Padding(
-                padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
-                child: SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton(
-                    onPressed: _canSubmit() ? _submitExpenses : null,
-                    style: ElevatedButton.styleFrom(
-                      elevation: 0,
-                      backgroundColor: const Color(0xFF54B435),
-                      disabledBackgroundColor: Colors.grey.shade700,
-                      foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(vertical: 18),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(14),
-                      ),
-                    ),
-                    child: const Text(
-                      'Confirm',
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-            ),
+            _bottomSubmitBar(total, isLoading),
           ],
         ),
       ),
@@ -475,134 +437,114 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
       ),
     );
   }
-}
 
-class _ExpenseInputRow extends StatelessWidget {
-  const _ExpenseInputRow({
-    required this.index,
-    required this.row,
-    required this.onVendorTap,
-    required this.onDelete,
-    required this.onChanged,
-    required this.inputDecorationBuilder,
-  });
-
-  final int index;
-  final _ExpenseRowData row;
-  final VoidCallback onVendorTap;
-  final VoidCallback onDelete;
-  final VoidCallback onChanged;
-  final InputDecoration Function({
-    required String hint,
-    Widget? suffixIcon,
-    bool readOnly,
-  }) inputDecorationBuilder;
-
-  @override
-  Widget build(BuildContext context) {
-    final vendorHint = row.isOtherVendor
-        ? 'Enter vendor'
-        : (row.selectedVendor ?? 'Search vendor');
+  Widget _expenseRow(int index) {
+    final row = _expenseRows[index];
 
     return Container(
-      padding: const EdgeInsets.all(12),
+      margin: const EdgeInsets.only(bottom: 14),
+      padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: const Color(0xFFF3F3F7),
-        borderRadius: BorderRadius.circular(22),
+        color: Colors.white.withOpacity(0.06),
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: Colors.white10),
       ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.center,
+      child: Column(
         children: [
-          Expanded(
-            flex: 5,
-            child: row.isOtherVendor
-                ? TextFormField(
-                    controller: row.vendorController,
-                    textInputAction: TextInputAction.next,
-                    decoration: inputDecorationBuilder(
-                      hint: vendorHint,
-                      suffixIcon: IconButton(
-                        icon: const Icon(
-                          Icons.search,
-                          color: Color(0xFFB9BCC6),
-                        ),
-                        onPressed: onVendorTap,
-                      ),
-                    ),
-                    onChanged: (_) => onChanged(),
-                  )
-                : GestureDetector(
-                    onTap: onVendorTap,
-                    child: AbsorbPointer(
-                      child: TextFormField(
-                        controller: row.vendorController,
-                        readOnly: true,
-                        style: const TextStyle(
-                          color: Colors.black,
-                          fontSize: 15,
-                          fontWeight: FontWeight.w500,
-                        ),
-                        decoration: inputDecorationBuilder(
-                          hint: vendorHint,
-                          suffixIcon: const Icon(
-                            Icons.search,
-                            color: Color(0xFFB9BCC6),
-                          ),
-                          readOnly: true,
-                        ),
-                      ),
-                    ),
-                  ),
-          ),
-          const SizedBox(width: 10),
-          Expanded(
-            flex: 3,
-            child: TextFormField(
-              controller: row.priceController,
-              focusNode: row.priceFocusNode,
-              keyboardType: const TextInputType.numberWithOptions(decimal: true),
-              inputFormatters: [
-                FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d{0,2}')),
-              ],
-              style: const TextStyle(
-                color: Colors.black,
-                fontSize: 15,
-                fontWeight: FontWeight.w500,
+          GestureDetector(
+            onTap: () => _openVendorSearch(index),
+            child: AbsorbPointer(
+              child: TextFormField(
+                controller: row.vendorController,
+                readOnly: !row.isOtherVendor,
+                style: const TextStyle(color: Colors.black),
+                decoration: _inputDecoration(
+                  hint: selectedCategory == null
+                      ? 'Select category first'
+                      : 'Search vendor',
+                  suffixIcon: const Icon(Icons.search_rounded),
+                ),
               ),
-              decoration: inputDecorationBuilder(
-                hint: '\$0.00',
-              ),
-              onChanged: (_) => onChanged(),
             ),
           ),
-          const SizedBox(width: 8),
-          IconButton(
-            onPressed: onDelete,
-            icon: const Icon(
-              Icons.close_rounded,
-              color: Colors.black54,
-              size: 28,
+          const SizedBox(height: 12),
+          TextFormField(
+            controller: row.priceController,
+            focusNode: row.priceFocusNode,
+            keyboardType: const TextInputType.numberWithOptions(decimal: true),
+            inputFormatters: [
+              FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d{0,2}')),
+            ],
+            style: const TextStyle(color: Colors.black),
+            decoration: _inputDecoration(
+              hint: 'Amount',
+              suffixIcon: IconButton(
+                onPressed: () => _removeRow(index),
+                icon: const Icon(Icons.close_rounded),
+              ),
             ),
-            tooltip: index == 0 ? 'Clear row' : 'Remove row',
+            onChanged: (_) => setState(() {}),
           ),
         ],
       ),
     );
   }
+
+  Widget _bottomSubmitBar(double total, bool isLoading) {
+    return Container(
+      padding: const EdgeInsets.fromLTRB(16, 14, 16, 16),
+      decoration: BoxDecoration(
+        color: Colors.black,
+        border: Border(
+          top: BorderSide(color: Colors.white.withOpacity(0.08)),
+        ),
+      ),
+      child: Row(
+        children: [
+          Expanded(
+            child: Text(
+              'Total: ${_formatCurrency(total)}',
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 18,
+                fontWeight: FontWeight.w800,
+              ),
+            ),
+          ),
+          const SizedBox(width: 12),
+
+          // SizedBox gives the button a fixed width so it does not try to be infinite
+          SizedBox(
+            width: 110,
+            height: 55,
+            child: ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                minimumSize: const Size(110, 55),
+              ),
+              onPressed: !_canSubmit() || isLoading ? null : _submitExpenses,
+              child: isLoading
+                  ? const SizedBox(
+                      width: 18,
+                      height: 18,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    )
+                  : const Text('Save'),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
 }
 
 class _ExpenseRowData {
-  _ExpenseRowData()
-      : vendorController = TextEditingController(),
-        priceController = TextEditingController(),
-        priceFocusNode = FocusNode();
-
-  final TextEditingController vendorController;
-  final TextEditingController priceController;
-  final FocusNode priceFocusNode;
-
   String? selectedVendor;
   bool isOtherVendor = false;
+
+  final TextEditingController vendorController = TextEditingController();
+  final TextEditingController priceController = TextEditingController();
+  final FocusNode priceFocusNode = FocusNode();
 
   void clear() {
     selectedVendor = null;
@@ -618,30 +560,58 @@ class _ExpenseRowData {
   }
 }
 
-class VendorSearchDelegate extends SearchDelegate<String?> {
-  VendorSearchDelegate({
-    required this.vendors,
+class _CategoryPickerSheet extends StatelessWidget {
+  final List<String> categories;
+  final String? selectedCategory;
+
+  const _CategoryPickerSheet({
+    required this.categories,
+    required this.selectedCategory,
   });
 
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.fromLTRB(18, 18, 18, 30),
+      decoration: const BoxDecoration(
+        color: Color(0xFF111827),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(26)),
+      ),
+      child: Wrap(
+        spacing: 10,
+        runSpacing: 10,
+        children: categories.map((category) {
+          final selected = category == selectedCategory;
+
+          return ChoiceChip(
+            label: Text(category),
+            selected: selected,
+            selectedColor: const Color(0xFF8B5CF6),
+            backgroundColor: Colors.white.withOpacity(0.06),
+            labelStyle: TextStyle(
+              color: selected ? Colors.white : Colors.white70,
+              fontWeight: FontWeight.w700,
+            ),
+            side: BorderSide(color: Colors.white.withOpacity(0.08)),
+            onSelected: (_) => Navigator.pop(context, category),
+          );
+        }).toList(),
+      ),
+    );
+  }
+}
+
+class VendorSearchDelegate extends SearchDelegate<String?> {
   final List<String> vendors;
 
-  @override
-  String get searchFieldLabel => 'Search vendors';
+  VendorSearchDelegate({required this.vendors});
 
   @override
   ThemeData appBarTheme(BuildContext context) {
-    return ThemeData(
+    return ThemeData.dark().copyWith(
       scaffoldBackgroundColor: Colors.black,
-      appBarTheme: const AppBarTheme(
-        backgroundColor: Colors.black,
-        foregroundColor: Colors.white,
-      ),
       inputDecorationTheme: const InputDecorationTheme(
-        hintStyle: TextStyle(color: Colors.white54),
         border: InputBorder.none,
-      ),
-      textTheme: const TextTheme(
-        titleLarge: TextStyle(color: Colors.white),
       ),
     );
   }
@@ -649,11 +619,10 @@ class VendorSearchDelegate extends SearchDelegate<String?> {
   @override
   List<Widget>? buildActions(BuildContext context) {
     return [
-      if (query.isNotEmpty)
-        IconButton(
-          onPressed: () => query = '',
-          icon: const Icon(Icons.clear, color: Colors.white),
-        ),
+      IconButton(
+        onPressed: () => query = '',
+        icon: const Icon(Icons.clear_rounded),
+      ),
     ];
   }
 
@@ -661,191 +630,32 @@ class VendorSearchDelegate extends SearchDelegate<String?> {
   Widget? buildLeading(BuildContext context) {
     return IconButton(
       onPressed: () => close(context, null),
-      icon: const Icon(Icons.arrow_back, color: Colors.white),
+      icon: const Icon(Icons.arrow_back_rounded),
     );
   }
 
   @override
   Widget buildResults(BuildContext context) {
-    final results = _filteredVendors();
-
-    return Container(
-      color: Colors.black,
-      child: ListView.builder(
-        itemCount: results.length,
-        itemBuilder: (context, index) {
-          final vendor = results[index];
-          return ListTile(
-            title: Text(
-              vendor,
-              style: const TextStyle(color: Colors.white),
-            ),
-            onTap: () => close(context, vendor),
-          );
-        },
-      ),
-    );
+    return _vendorList(context);
   }
 
   @override
   Widget buildSuggestions(BuildContext context) {
-    final results = _filteredVendors();
-
-    return Container(
-      color: Colors.black,
-      child: ListView.builder(
-        itemCount: results.length,
-        itemBuilder: (context, index) {
-          final vendor = results[index];
-          return ListTile(
-            leading: const Icon(
-              Icons.storefront_outlined,
-              color: Colors.white70,
-            ),
-            title: Text(
-              vendor,
-              style: const TextStyle(color: Colors.white),
-            ),
-            onTap: () => close(context, vendor),
-          );
-        },
-      ),
-    );
+    return _vendorList(context);
   }
 
-  List<String> _filteredVendors() {
-    if (query.trim().isEmpty) return vendors;
+  Widget _vendorList(BuildContext context) {
+    final filtered = vendors.where((vendor) {
+      return vendor.toLowerCase().contains(query.trim().toLowerCase());
+    }).toList();
 
-    return vendors
-        .where(
-          (vendor) =>
-              vendor.toLowerCase().contains(query.trim().toLowerCase()),
-        )
-        .toList();
-  }
-}
-
-class _CategoryPickerSheet extends StatelessWidget {
-  const _CategoryPickerSheet({
-    required this.categories,
-    required this.selectedCategory,
-  });
-
-  final List<String> categories;
-  final String? selectedCategory;
-
-  IconData _iconForCategory(String category) {
-    switch (category) {
-      case 'Food':
-        return Icons.restaurant_rounded;
-      case 'Transportation':
-        return Icons.directions_car_filled_rounded;
-      case 'Rent':
-        return Icons.home_rounded;
-      case 'Shopping':
-        return Icons.shopping_bag_rounded;
-      case 'Subscription':
-        return Icons.subscriptions_rounded;
-      case 'Education':
-        return Icons.menu_book_rounded;
-      default:
-        return Icons.category_rounded;
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return DraggableScrollableSheet(
-      initialChildSize: 0.72,
-      minChildSize: 0.5,
-      maxChildSize: 0.92,
-      builder: (context, controller) {
-        return Container(
-          decoration: const BoxDecoration(
-            color: Color(0xFFF3F1F8),
-            borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
-          ),
-          child: Column(
-            children: [
-              const SizedBox(height: 10),
-              Container(
-                width: 42,
-                height: 5,
-                decoration: BoxDecoration(
-                  color: Colors.black26,
-                  borderRadius: BorderRadius.circular(10),
-                ),
-              ),
-              const SizedBox(height: 18),
-              const Text(
-                'Select Category',
-                style: TextStyle(
-                  color: Colors.black, 
-                  fontSize: 20,
-                  fontWeight: FontWeight.w700,
-                ),
-              ),
-              const SizedBox(height: 18),
-              Expanded(
-                child: GridView.builder(
-                  controller: controller,
-                  padding: const EdgeInsets.fromLTRB(18, 8, 18, 24),
-                  itemCount: categories.length,
-                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: 3,
-                    mainAxisSpacing: 16,
-                    crossAxisSpacing: 16,
-                    childAspectRatio: 0.95,
-                  ),
-                  itemBuilder: (context, index) {
-                    final category = categories[index];
-                    final isSelected = category == selectedCategory;
-
-                    return GestureDetector(
-                      onTap: () => Navigator.pop(context, category),
-                      child: Container(
-                        padding: const EdgeInsets.all(12),
-                        decoration: BoxDecoration(
-                          color: isSelected
-                              ? const Color(0xFFE9E2FF)
-                              : Colors.white,
-                          borderRadius: BorderRadius.circular(20),
-                          border: Border.all(
-                            color: isSelected
-                                ? const Color(0xFF8B5CF6)
-                                : Colors.black12,
-                            width: 1.2,
-                          ),
-                        ),
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Icon(
-                              _iconForCategory(category),
-                              size: 28,
-                              color: const Color(0xFF8B5CF6),
-                            ),
-                            const SizedBox(height: 10),
-                            Text(
-                              category,
-                              textAlign: TextAlign.center,
-                              style: const TextStyle(
-                                color: Colors.black,
-                                fontWeight: FontWeight.w600,
-                                fontSize: 13,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    );
-                  },
-                ),
-              ),
-            ],
-          ),
+    return ListView(
+      children: filtered.map((vendor) {
+        return ListTile(
+          title: Text(vendor),
+          onTap: () => close(context, vendor),
         );
-      },
+      }).toList(),
     );
   }
 }

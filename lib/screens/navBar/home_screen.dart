@@ -1,8 +1,9 @@
+import 'package:bag_flow/models/expense.dart';
 import 'package:bag_flow/providers/auth_provider.dart';
+import 'package:bag_flow/providers/expense_provider.dart';
 import 'package:bag_flow/utils/bottom_nav_handler.dart';
 import 'package:bag_flow/widgets/layouts/fixed_appBar.dart';
 import 'package:bag_flow/widgets/layouts/fixed_bottomNavBar.dart';
-import 'package:bag_flow/screens/navBar/addExpense_screen.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -16,6 +17,7 @@ class HomeScreen extends ConsumerStatefulWidget {
 }
 
 enum TimeFilter { week, month, year }
+
 enum InsightTab { pieChart, breakdown }
 
 class _Chart {
@@ -47,58 +49,14 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   InsightTab _selectedInsightTab = InsightTab.pieChart;
   bool _isInsightsExpanded = false;
 
-  // Set recent hard coded transactions from recent
-  final List<Map<String, dynamic>> _expenses = [
-    {
-      'category': 'Food',
-      'company': 'Starbucks',
-      'price': 8.75,
-      'date': DateTime.now().subtract(const Duration(days: 2)),
-    },
-    {
-      'category': 'Transportation',
-      'company': 'Uber',
-      'price': 123.00,
-      'date': DateTime.now().subtract(const Duration(days: 3)),
-    },
-    {
-      'category': 'Shopping',
-      'company': 'Target',
-      'price': 64.25,
-      'date': DateTime.now().subtract(const Duration(days: 10)),
-    },
-    {
-      'category': 'Bills',
-      'company': 'Verizon',
-      'price': 89.99,
-      'date': DateTime.now().subtract(const Duration(days: 40)),
-    },
-  ];
-
-  // Acquire new expenses from the Add Expense screen
-  Future<void> _openAddExpenseScreen() async {
-    final newExpense = await Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => AddExpenseScreen(),
-      ),
-    );
-
-    if (newExpense != null) {
-      setState(() {
-        _expenses.add(newExpense);
-      });
-    }
-  }
-
   // Return all expenses in a certain time frame
-  List<Map<String, dynamic>> _expensesTime() {
+  List<Expense> _expensesTime(List<Expense> expenses) {
     // Acquire current date
     final now = DateTime.now();
 
     // Return all expenses based on selected time frame
-    return _expenses.where((expense) {
-      final expenseDate = expense['date'] as DateTime;
+    return expenses.where((expense) {
+      final expenseDate = expense.date;
 
       switch (_selectedTime) {
         case TimeFilter.week:
@@ -120,34 +78,31 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         // Return expenses within the last 7 year(including this year)
         case TimeFilter.year:
           final sevenYearsAgo = now.year - 6;
-          return expenseDate.year >= sevenYearsAgo && expenseDate.year <= now.year;
+          return expenseDate.year >= sevenYearsAgo &&
+              expenseDate.year <= now.year;
       }
     }).toList();
   }
 
   // Return the most recent 7 transactions regardless of selected time frame
-  List<Map<String, dynamic>> _recentTransactions() {
+  List<Expense> _recentTransactions(List<Expense> expenses) {
     // Creates a copy of the original data to prevent modification when sorting
-    final recentExpenses = List<Map<String, dynamic>>.from(_expenses);
+    final recentExpenses = List<Expense>.from(expenses);
 
-    // Sorts transactions from newest -> oldest dates 
-    recentExpenses.sort((a, b) {
-      final aDate = a['date'] as DateTime;
-      final bDate = b['date'] as DateTime;
-      return bDate.compareTo(aDate);
-    });
+    // Sorts transactions from newest -> oldest dates
+    recentExpenses.sort((a, b) => b.date.compareTo(a.date));
 
     return recentExpenses.take(7).toList();
   }
 
   // Sums all the expenses from a chosen time frame
-  double _totalSpent() {
+  double _totalSpent(List<Expense> expenses) {
     // Retrieve all the expenses for a chosen time frame
-    final filtered = _expensesTime();
+    final filtered = _expensesTime(expenses);
 
     return filtered.fold<double>(
       0.0,
-      (sum, expense) => sum + (expense['price'] as num).toDouble(),
+      (sum, expense) => sum + expense.amount,
     );
   }
 
@@ -180,7 +135,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   }
 
   // Acquire the expenses from each time frame
-  List<_Chart> _chartData() {
+  List<_Chart> _chartData(List<Expense> expenses) {
     final now = DateTime.now();
 
     switch (_selectedTime) {
@@ -188,7 +143,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         // Go back a week
         final start =
             DateTime(now.year, now.month, now.day).subtract(const Duration(days: 6));
-        // Collect data points 
+
+        // Collect data points
         final List<_Chart> dataPoints = [];
 
         // Add expenses for the past 7 days
@@ -196,14 +152,14 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           final day = start.add(Duration(days: i));
           double total = 0;
 
-          for (final expense in _expenses) {
-            // Convert to DateTime data type 
-            final expenseDate = expense['date'] as DateTime;
+          for (final expense in expenses) {
+            // Convert to DateTime data type
+            final expenseDate = expense.date;
 
             if (expenseDate.year == day.year &&
                 expenseDate.month == day.month &&
                 expenseDate.day == day.day) {
-              total += (expense['price'] as num).toDouble();
+              total += expense.amount;
             }
           }
 
@@ -224,11 +180,11 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         for (int month = 1; month <= 12; month++) {
           double total = 0;
 
-          for (final expense in _expenses) {
-            final expenseDate = expense['date'] as DateTime;
+          for (final expense in expenses) {
+            final expenseDate = expense.date;
 
             if (expenseDate.year == now.year && expenseDate.month == month) {
-              total += (expense['price'] as num).toDouble();
+              total += expense.amount;
             }
           }
 
@@ -251,11 +207,11 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           final year = startYear + i;
           double total = 0;
 
-          for (final expense in _expenses) {
-            final expenseDate = expense['date'] as DateTime;
+          for (final expense in expenses) {
+            final expenseDate = expense.date;
 
             if (expenseDate.year == year) {
-              total += (expense['price'] as num).toDouble();
+              total += expense.amount;
             }
           }
 
@@ -272,11 +228,11 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   }
 
   // Return expenses from the time frame before selected time frame(e.g. the week before this week)
-  List<Map<String, dynamic>> _previousPeriodExpenses() {
+  List<Expense> _previousPeriodExpenses(List<Expense> expenses) {
     final now = DateTime.now();
 
-    return _expenses.where((expense) {
-      final expenseDate = expense['date'] as DateTime;
+    return expenses.where((expense) {
+      final expenseDate = expense.date;
 
       switch (_selectedTime) {
         case TimeFilter.week:
@@ -304,19 +260,19 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     }).toList();
   }
 
-  double _previousPeriodTotalSpent() {
-    final previous = _previousPeriodExpenses();
+  double _previousPeriodTotalSpent(List<Expense> expenses) {
+    final previous = _previousPeriodExpenses(expenses);
 
     return previous.fold<double>(
       0.0,
-      (sum, expense) => sum + (expense['price'] as num).toDouble(),
+      (sum, expense) => sum + expense.amount,
     );
   }
 
-  // Find totals and rank categories based on spending 
-  List<_CategoryInsight> _categoryInsights() {
-    final filtered = _expensesTime();
-    final total = _totalSpent();
+  // Find totals and rank categories based on spending
+  List<_CategoryInsight> _categoryInsights(List<Expense> expenses) {
+    final filtered = _expensesTime(expenses);
+    final total = _totalSpent(expenses);
 
     if (filtered.isEmpty || total == 0) {
       return [];
@@ -326,8 +282,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 
     // Find total for every category
     for (final expense in filtered) {
-      final category = (expense['category'] ?? 'Other').toString();
-      final amount = (expense['price'] as num).toDouble();
+      final category = expense.category;
+      final amount = expense.amount;
       categoryTotals[category] = (categoryTotals[category] ?? 0) + amount;
     }
 
@@ -346,35 +302,30 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     return insights;
   }
 
-  // Get the breakdown of the most expensive category 
-  Map<String, dynamic>? _mostSpentCategory() {
-    final categoryInsights = _categoryInsights();
+  // Get the breakdown of the most expensive category
+  _CategoryInsight? _mostSpentCategory(List<Expense> expenses) {
+    final categoryInsights = _categoryInsights(expenses);
 
     if (categoryInsights.isEmpty) {
       return null;
     }
 
-    final top = categoryInsights.first;
-    return {
-      'category': top.category,
-      'amount': top.amount,
-      'percentage': top.percentage,
-    };
+    return categoryInsights.first;
   }
 
-  Map<String, dynamic>? _highestTransaction() {
-    final filtered = _expensesTime();
+  Expense? _highestTransaction(List<Expense> expenses) {
+    final filtered = _expensesTime(expenses);
 
     if (filtered.isEmpty) {
       return null;
     }
 
-    Map<String, dynamic> highest = filtered.first;
+    Expense highest = filtered.first;
 
     // Compare current price to first expense returned to find highest transaction
     for (final expense in filtered) {
-      final currentPrice = (expense['price'] as num).toDouble();
-      final highestPrice = (highest['price'] as num).toDouble();
+      final currentPrice = expense.amount;
+      final highestPrice = highest.amount;
 
       if (currentPrice > highestPrice) {
         highest = expense;
@@ -384,10 +335,10 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     return highest;
   }
 
-  // Return response based on differences in percentage from the previous time period 
-  String _comparisonToPreviousPeriod() {
-    final current = _totalSpent();
-    final previous = _previousPeriodTotalSpent();
+  // Return response based on differences in percentage from the previous time period
+  String _comparisonToPreviousPeriod(List<Expense> expenses) {
+    final current = _totalSpent(expenses);
+    final previous = _previousPeriodTotalSpent(expenses);
 
     if (previous == 0 && current == 0) {
       return 'No spending in either this or the previous ${_selectedTimeLabel()}.';
@@ -409,9 +360,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     }
   }
 
-  // Generates the pie chart based on categoryInsights 
-  List<PieChartSectionData> _pieChartSections() {
-    final categoryInsights = _categoryInsights();
+  // Generates the pie chart based on categoryInsights
+  List<PieChartSectionData> _pieChartSections(List<Expense> expenses) {
+    final categoryInsights = _categoryInsights(expenses);
 
     if (categoryInsights.isEmpty) {
       return [];
@@ -427,16 +378,17 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       Colors.amberAccent,
     ];
 
-    // Generate pie slices 
+    // Generate pie slices
     return List.generate(categoryInsights.length, (index) {
-      // Get current items 
+      // Get current items
       final item = categoryInsights[index];
-      // Highlight the biggest category 
+
+      // Highlight the biggest category
       final isHighest = index == 0;
 
       return PieChartSectionData(
         value: item.amount,
-        title: '${item.percentage.toStringAsFixed(2)}%',
+        title: '${item.percentage.toStringAsFixed(1)}%',
         radius: isHighest ? 62 : 54,
         color: sectionColors[index % sectionColors.length],
         titleStyle: const TextStyle(
@@ -487,7 +439,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             return Padding(
               padding: const EdgeInsets.only(top: 8),
               child: Transform.rotate(
-                angle: -0.5, // rotate ~ -28 degrees
+                angle: -0.5,
                 child: Text(
                   chartPoints[index].label,
                   style: const TextStyle(
@@ -504,9 +456,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   }
 
   // Add the chart widget
-  Widget _buildExpenseChart() {
-    // Get all the data points 
-    final chartPoints = _chartData();
+  Widget _buildExpenseChart(List<Expense> expenses) {
+    // Get all the data points
+    final chartPoints = _chartData(expenses);
 
     final maxVal = chartPoints.isEmpty
         ? 10.0
@@ -523,84 +475,85 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         borderRadius: BorderRadius.circular(18),
         border: Border.all(color: Colors.white12),
       ),
-      child: _selectedTime == TimeFilter.week
-          ? LineChart(
-              LineChartData(
-                minY: 0,
-                maxY: maxY,
-                // Adds horizontal lines 
-                gridData: FlGridData(
-                  show: true,
-                  drawVerticalLine: false,
-                  getDrawingHorizontalLine: (_) => FlLine(
-                    color: Colors.white12,
-                    strokeWidth: 1,
-                  ),
-                ),
-                // Removes chart border ?????????????
-                borderData: FlBorderData(show: true),
-                titlesData: _chartTitles(chartPoints),
-                lineBarsData: [
-                  LineChartBarData(
-                    isCurved: false,
-                    barWidth: 3,
-                    color: Colors.cyanAccent,
-                    // Puts a dot on each point
-                    dotData: FlDotData(show: true),
-                    // Fills area under line 
-                    belowBarData: BarAreaData(
-                      show: true,
-                      color: Colors.cyanAccent.withOpacity(0.15),
-                    ),
-                    // Converts data into points 
-                    spots: List.generate(
-                      chartPoints.length,
-                      (index) => FlSpot(
-                        index.toDouble(),
-                        chartPoints[index].value,
-                      ),
-                    ),
-                  ),
-                ],
+      child: chartPoints.every((point) => point.value == 0)
+          ? const Center(
+              child: Text(
+                'No chart data yet',
+                style: TextStyle(color: Colors.white70),
               ),
             )
-          : BarChart(
-              BarChartData(
-                minY: 0,
-                maxY: maxY,
-                gridData: FlGridData(
-                  show: true,
-                  drawVerticalLine: false,
-                  getDrawingHorizontalLine: (_) => FlLine(
-                    color: Colors.white12,
-                    strokeWidth: 1,
-                  ),
-                ),
-                borderData: FlBorderData(show: false),
-                titlesData: _chartTitles(chartPoints),
-                barGroups: List.generate(
-                  chartPoints.length,
-                  (index) => BarChartGroupData(
-                    x: index,
-                    barRods: [
-                      BarChartRodData(
-                        // Set bar height
-                        toY: chartPoints[index].value,
-                        width: _selectedTime == TimeFilter.month ? 12 : 18,
-                        borderRadius: BorderRadius.circular(6),
-                        color: Colors.lightBlueAccent,
+          : _selectedTime == TimeFilter.week
+              ? LineChart(
+                  LineChartData(
+                    minY: 0,
+                    maxY: maxY,
+                    gridData: FlGridData(
+                      show: true,
+                      drawVerticalLine: false,
+                      getDrawingHorizontalLine: (_) => FlLine(
+                        color: Colors.white12,
+                        strokeWidth: 1,
+                      ),
+                    ),
+                    borderData: FlBorderData(show: true),
+                    titlesData: _chartTitles(chartPoints),
+                    lineBarsData: [
+                      LineChartBarData(
+                        isCurved: false,
+                        barWidth: 3,
+                        color: Colors.cyanAccent,
+                        dotData: const FlDotData(show: true),
+                        belowBarData: BarAreaData(
+                          show: true,
+                          color: Colors.cyanAccent.withOpacity(0.15),
+                        ),
+                        spots: List.generate(
+                          chartPoints.length,
+                          (index) => FlSpot(
+                            index.toDouble(),
+                            chartPoints[index].value,
+                          ),
+                        ),
                       ),
                     ],
                   ),
+                )
+              : BarChart(
+                  BarChartData(
+                    minY: 0,
+                    maxY: maxY,
+                    gridData: FlGridData(
+                      show: true,
+                      drawVerticalLine: false,
+                      getDrawingHorizontalLine: (_) => FlLine(
+                        color: Colors.white12,
+                        strokeWidth: 1,
+                      ),
+                    ),
+                    borderData: FlBorderData(show: false),
+                    titlesData: _chartTitles(chartPoints),
+                    barGroups: List.generate(
+                      chartPoints.length,
+                      (index) => BarChartGroupData(
+                        x: index,
+                        barRods: [
+                          BarChartRodData(
+                            // Set bar height
+                            toY: chartPoints[index].value,
+                            width: _selectedTime == TimeFilter.month ? 12 : 18,
+                            borderRadius: BorderRadius.circular(6),
+                            color: Colors.lightBlueAccent,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
                 ),
-              ),
-            ),
     );
   }
 
-  // Open/close for insights 
-  Widget _buildInsightsSection() {
-    // Rounded container
+  // Open/close for insights
+  Widget _buildInsightsSection(List<Expense> expenses) {
     return Container(
       margin: const EdgeInsets.only(top: 18),
       decoration: BoxDecoration(
@@ -660,24 +613,23 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             ),
           ),
           AnimatedSwitcher(
-            duration: Duration(milliseconds: 250),
+            duration: const Duration(milliseconds: 250),
             child: _isInsightsExpanded
                 ? Padding(
-                    key: ValueKey(1), // Visible content 
+                    key: const ValueKey(1),
                     padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
                     child: Column(
                       children: [
                         _buildInsightTabSwitcher(),
                         const SizedBox(height: 16),
-                        // Show whichever tab is selected 
                         _selectedInsightTab == InsightTab.pieChart
-                            ? _buildPieChartTab()
-                            : _buildBreakdownTab(),
+                            ? _buildPieChartTab(expenses)
+                            : _buildBreakdownTab(expenses),
                       ],
                     ),
                   )
-                : const SizedBox.shrink(key: ValueKey(2)), // Section collapses 
-          ), 
+                : const SizedBox.shrink(key: ValueKey(2)),
+          ),
         ],
       ),
     );
@@ -693,7 +645,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       ),
       child: Row(
         children: [
-          // For pie chart tab 
           Expanded(
             child: GestureDetector(
               onTap: () {
@@ -722,7 +673,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               ),
             ),
           ),
-          // For breakdown tab 
           Expanded(
             child: GestureDetector(
               onTap: () {
@@ -756,9 +706,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     );
   }
 
-  // Builds the pie chart tab section 
-  Widget _buildPieChartTab() {
-    final categoryInsights = _categoryInsights();
+  // Builds the pie chart tab section
+  Widget _buildPieChartTab(List<Expense> expenses) {
+    final categoryInsights = _categoryInsights(expenses);
 
     if (categoryInsights.isEmpty) {
       return const Padding(
@@ -780,12 +730,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           height: 220,
           child: PieChart(
             PieChartData(
-              // Gaps between slices 
               sectionsSpace: 3,
-              // Donut hole 
               centerSpaceRadius: 46,
-              // Actual data slices 
-              sections: _pieChartSections(),
+              sections: _pieChartSections(expenses),
             ),
           ),
         ),
@@ -798,7 +745,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             borderRadius: BorderRadius.circular(14),
             border: Border.all(color: Colors.cyanAccent.withOpacity(0.35)),
           ),
-          // Highlights the most expensive category 
           child: Text(
             'Highest spending category: ${highest.category} (${_formatCurrency(highest.amount)})',
             style: const TextStyle(
@@ -808,7 +754,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           ),
         ),
         const SizedBox(height: 14),
-        // Breaks down percentage of categories below the pie chart 
         ...categoryInsights.map((item) {
           final isHighest = item.category == highest.category;
 
@@ -819,7 +764,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               color: Colors.white.withOpacity(0.05),
               borderRadius: BorderRadius.circular(14),
               border: Border.all(
-                color: isHighest ? Colors.cyanAccent.withOpacity(0.45) : Colors.white10,
+                color: isHighest
+                    ? Colors.cyanAccent.withOpacity(0.45)
+                    : Colors.white10,
               ),
             ),
             child: Row(
@@ -830,7 +777,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                     style: TextStyle(
                       color: Colors.white,
                       fontSize: 15,
-                      fontWeight: isHighest ? FontWeight.bold : FontWeight.w600,
+                      fontWeight:
+                          isHighest ? FontWeight.bold : FontWeight.w600,
                     ),
                   ),
                 ),
@@ -859,12 +807,12 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     );
   }
 
-  // Creates the different insight sections 
-  Widget _buildBreakdownTab() {
-    final mostSpent = _mostSpentCategory();
-    final highestTransaction = _highestTransaction();
-    final totalTransactions = _expensesTime().length;
-    final comparison = _comparisonToPreviousPeriod();
+  // Creates the different insight sections
+  Widget _buildBreakdownTab(List<Expense> expenses) {
+    final mostSpent = _mostSpentCategory(expenses);
+    final highestTransaction = _highestTransaction(expenses);
+    final totalTransactions = _expensesTime(expenses).length;
+    final comparison = _comparisonToPreviousPeriod(expenses);
 
     return Column(
       children: [
@@ -872,14 +820,14 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           title: 'Most spent category',
           value: mostSpent == null
               ? 'No data'
-              : '${mostSpent['category']} • ${_formatCurrency((mostSpent['amount'] as num).toDouble())}',
+              : '${mostSpent.category} • ${_formatCurrency(mostSpent.amount)}',
         ),
         const SizedBox(height: 10),
         _buildBreakdownCard(
           title: 'Highest single transaction',
           value: highestTransaction == null
               ? 'No data'
-              : '${_formatCurrency((highestTransaction['price'] as num).toDouble())} • ${highestTransaction['company']}',
+              : '${_formatCurrency(highestTransaction.amount)} • ${highestTransaction.title}',
         ),
         const SizedBox(height: 10),
         _buildBreakdownCard(
@@ -895,7 +843,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     );
   }
 
-  // Format the breakdown cards
   Widget _buildBreakdownCard({
     required String title,
     required String value,
@@ -936,75 +883,82 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     final userProfile = ref.watch(userProfileProvider);
+    final expensesAsync = ref.watch(expensesProvider);
 
-    return DefaultTabController(
-      length: 3,
-      initialIndex: TimeFilter.month.index,
-      child: Scaffold(
-        appBar: GradientAppBar(
-          title: 'Home',
-          onMenuTap: () {},
-        ),
-        body: userProfile.when(
-          data: (data) {
-            // Type cast data
-            final profile = data as Map<String, dynamic>;
+    return Scaffold(
+      backgroundColor: Colors.black,
+      appBar: GradientAppBar(
+        title: 'Home',
+        onMenuTap: () {},
+      ),
+      body: userProfile.when(
+        data: (data) {
+          final profile = data ?? {};
+          final firstName =
+              (profile['fullName'] ?? 'User').toString().split(' ').first;
 
-            // Get the first name from the full name
-            final firstName =
-                (profile['fullName'] ?? 'User').toString().split(' ').first;
-
-            return SafeArea(
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.fromLTRB(16, 20, 16, 16),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    Text(
-                      "Welcome, $firstName",
-                      style: const TextStyle(
-                        fontSize: 28,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white,
+          return expensesAsync.when(
+            data: (expenses) {
+              return SafeArea(
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.fromLTRB(16, 20, 16, 16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      Text(
+                        "Welcome, $firstName",
+                        style: const TextStyle(
+                          fontSize: 28,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                        ),
                       ),
-                    ),
-                    const SizedBox(height: 20),
-                    _timeSelectionRow(),
-                    _buildTotalSpentSection(),
-                    _buildRecentTransactions(),
-                  ],
+                      const SizedBox(height: 20),
+                      _timeSelectionRow(),
+                      _buildTotalSpentSection(expenses),
+                      _buildRecentTransactions(expenses),
+                    ],
+                  ),
                 ),
+              );
+            },
+            loading: () => const Center(
+              child: CircularProgressIndicator(),
+            ),
+            error: (e, _) => Center(
+              child: Text(
+                "Error loading expenses: $e",
+                style: const TextStyle(color: Colors.white),
               ),
-            );
-          },
-
-          // Display spinner as data is being fetched
-          loading: () => const Center(
-            child: CircularProgressIndicator(),
-          ),
-          error: (e, _) => Center(
-            child: Text("Error: $e"),
+            ),
+          );
+        },
+        loading: () => const Center(
+          child: CircularProgressIndicator(),
+        ),
+        error: (e, _) => Center(
+          child: Text(
+            "Error: $e",
+            style: const TextStyle(color: Colors.white),
           ),
         ),
-        bottomNavigationBar: BottomNavBar(
-          currentIndex: _currentIndex,
-          onTap: (index) async {
-            await handleBottomNavTap(
-              context: context,
-              index: index,
-              currentIndex: _currentIndex,
-              setIndex: (i) => setState(() => _currentIndex = i),
-              openAddExpense: _openAddExpenseScreen,
-            );
-          },
-        ),
+      ),
+      bottomNavigationBar: BottomNavBar(
+        currentIndex: _currentIndex,
+        onTap: (index) async {
+          await handleBottomNavTap(
+            context: context,
+            index: index,
+            currentIndex: _currentIndex,
+            setIndex: (i) => setState(() => _currentIndex = i),
+          );
+        },
       ),
     );
   }
 
-  Widget _buildRecentTransactions() {
-    // Retrieve the recent 7 expenses regardless of selected time frame
-    final filtered = _recentTransactions();
+  Widget _buildRecentTransactions(List<Expense> expenses) {
+    final filtered = _recentTransactions(expenses);
 
     if (filtered.isEmpty) {
       return const Text(
@@ -1025,50 +979,43 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             fontWeight: FontWeight.bold,
           ),
         ),
-
         const SizedBox(height: 8),
         Container(
           height: 1,
-          color: Colors.white24, // subtle white line
+          color: Colors.white24,
         ),
-
         const SizedBox(height: 12),
-        // For every expense, build a widget, insert them into this list 
         ...filtered.map((expense) {
-          final company = expense['company'];
-          final category = expense['category'];
-          final price = (expense['price'] as num).toDouble();
-          final date = expense['date'] as DateTime;
-
           return Padding(
             padding: const EdgeInsets.all(16),
             child: Row(
-              // Displays elements on opposite ends
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      company,
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        expense.title,
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                        ),
                       ),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      '$category • ${date.month}/${date.day}/${date.year}',
-                      style: const TextStyle(
-                        color: Colors.white70,
-                        fontSize: 13,
+                      const SizedBox(height: 4),
+                      Text(
+                        '${expense.category} • ${expense.date.month}/${expense.date.day}/${expense.date.year}',
+                        style: const TextStyle(
+                          color: Colors.white70,
+                          fontSize: 13,
+                        ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
                 Text(
-                  _formatCurrency(price),
+                  _formatCurrency(expense.amount),
                   style: const TextStyle(
                     color: Colors.white,
                     fontSize: 16,
@@ -1084,8 +1031,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   }
 
   // Total spent summary
-  Widget _buildTotalSpentSection() {
-    final total = _totalSpent();
+  Widget _buildTotalSpentSection(List<Expense> expenses) {
+    final total = _totalSpent(expenses);
 
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 28),
@@ -1111,8 +1058,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             ),
           ),
           const SizedBox(height: 20),
-          _buildExpenseChart(),
-          _buildInsightsSection(),
+          _buildExpenseChart(expenses),
+          _buildInsightsSection(expenses),
         ],
       ),
     );
