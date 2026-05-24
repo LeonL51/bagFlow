@@ -18,11 +18,16 @@ class PreferencesService {
     return prefs.getString(_savedEmailKey);
   }
 
+  // Saves the user's "Keep me signed in" preference locally
+  // true  -> keep user logged in between app launches
+  // false -> sign user out when the app restarts
   Future<void> setKeepSignedIn(bool value) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool(_keepSignedInKey, value);
   }
 
+  // Retrieves the user's saved "Keep me signed in" preference
+  // Returns true by default if no preference has been saved yet
   Future<bool> getKeepSignedIn() async {
     final prefs = await SharedPreferences.getInstance();
     return prefs.getBool(_keepSignedInKey) ?? true;

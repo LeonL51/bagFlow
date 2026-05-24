@@ -7,17 +7,21 @@ final expenseServiceProvider = Provider<ExpenseService>((ref) {
   return ExpenseService();
 });
 
-final expenseLoadingProvider = StateProvider.autoDispose<bool>((ref) => false);
+final expenseLoadingProvider = StateProvider<bool>((ref) => false);
 
 final expensesProvider = StreamProvider<List<Expense>>((ref) {
-  final authService = ref.watch(authServiceProvider);
+  final authAsync = ref.watch(authStateProvider);
   final expenseService = ref.watch(expenseServiceProvider);
 
-  final user = authService.currentUser;
+  return authAsync.when(
+    data: (user) {
+      if (user == null) {
+        return Stream.value(<Expense>[]);
+      }
 
-  if (user == null) {
-    return const Stream.empty();
-  }
-
-  return expenseService.streamExpenses(user.uid);
+      return expenseService.streamExpenses(user.uid);
+    },
+    loading: () => Stream.value(<Expense>[]),
+    error: (_, __) => Stream.value(<Expense>[]),
+  );
 });

@@ -48,6 +48,7 @@ final userProfileProvider = FutureProvider<Map<String, dynamic>?>((ref) async {
   final user = authService.currentUser;
   if (user == null) return null;
 
+  // Retrieves user by id and converts data type 
   final doc = await userService.getUserProfile(user.uid);
   return doc.data() as Map<String, dynamic>?;
 });

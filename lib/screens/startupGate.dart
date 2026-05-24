@@ -9,12 +9,15 @@ class StartupGate extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    // Checks SharedPreferences to skip onboarding for returning users 
     final hasSeenWelcome = ref.watch(hasSeenWelcomeProvider);
+    // If keep me signed in was enabled, stay signed in
     final sessionBootstrap = ref.watch(sessionBootstrapProvider);
 
     return sessionBootstrap.when(
       data: (_) {
         return hasSeenWelcome.when(
+          // Routes user to auth gate or welcome screen 
           data: (seen) {
             if (seen) {
               return const AuthGate();
